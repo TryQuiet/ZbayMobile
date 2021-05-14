@@ -1,1 +1,3 @@
-export enum StoreKeys {}
+export enum StoreKeys {
+  TestStore = 'TestStore',
+}
