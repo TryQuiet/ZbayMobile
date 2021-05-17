@@ -1,3 +1,4 @@
 export enum StoreKeys {
-  Session = 'Session',
+  Socket = 'Socket',
+  PublicChannels = 'PublicChannels',
 }

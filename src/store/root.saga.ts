@@ -1,7 +1,8 @@
 import {all, fork} from 'typed-redux-saga';
 
-import {sessionMasterSaga} from './session/session.master.saga';
+import {socketMasterSaga} from './socket/socket.master.saga';
+import {publicChannelsMasterSaga} from './publicChannels/publicChannels.master.saga';
 
 export function* rootSaga(): Generator {
-  yield all([fork(sessionMasterSaga)]);
+  yield all([fork(socketMasterSaga), fork(publicChannelsMasterSaga)]);
 }
