@@ -1,65 +1,88 @@
 package com.zbaymobile
 
 import android.app.Application
-import android.app.IntentService
+import android.app.Service
 import android.content.Intent
+import android.os.Binder
 import android.os.Bundle
-import android.os.ResultReceiver
+import android.os.IBinder
 import android.util.Log
 import com.jaredrummler.android.shell.Shell
-import com.zbaymobile.torcontrol.TorControlConnection
+import com.zbaymobile.Scheme.Onion
+import com.zbaymobile.Utils.Const.DEFAULT_CONTROL_PORT
+import com.zbaymobile.Utils.Const.DEFAULT_SOCKS_PORT
 import com.zbaymobile.Utils.Const.DIRECTORY_TOR_DATA
-import com.zbaymobile.Utils.Utils.logNotice
+import com.zbaymobile.Utils.Const.TAG_TOR
+import com.zbaymobile.Utils.Utils.checkPort
+import com.zbaymobile.torcontrol.TorControlConnection
 import org.torproject.android.binary.TorResourceInstaller
 import org.torproject.android.binary.TorServiceConstants
 import java.io.*
-import java.net.ConnectException
-import java.net.InetSocketAddress
 import java.net.Socket
+import java.util.concurrent.Executors
 
 
-class TorService: IntentService(TorService::class.simpleName) {
+class TorService: Service() {
 
-    private var receiver: ResultReceiver? = null
+    private val binder = LocalBinder()
+    private val executor = Executors.newCachedThreadPool()
 
-    private var conn: TorControlConnection? = null
-
-    private lateinit var appBinHome: File
+    private lateinit var prefs: Prefs
+    private lateinit var client: Callbacks
     private lateinit var appCacheHome: File
 
     private var fileTorrc: File? = null
+    private var conn: TorControlConnection? = null
 
-    private var controlPort: Int = 9051
-    private var socksPort: Int = 9050
+    private var controlPort: Int = DEFAULT_CONTROL_PORT
+    private var socksPort: Int = DEFAULT_SOCKS_PORT
 
-    override fun onHandleIntent(intent: Intent?) {
-        receiver = intent?.getParcelableExtra("receiver")
+    var onions = mutableListOf<Onion>()
 
-        appBinHome = filesDir
+    fun registerClient(client: Callbacks) {
+        this.client = client
+    }
 
-        if (!appBinHome.exists()) {
-            appBinHome.mkdirs()
+    override fun onCreate() {
+        super.onCreate()
+        prefs = (application as MainApplication).sharedPrefs
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
+
+        if(intent != null){
+            executor.execute(IncomingIntentRouter(intent))
+        } else {
+            Log.d(TAG_TOR, "Got null onStartCommand() intent")
         }
 
+        return START_STICKY
+    }
+
+    private fun startTor() {
+        // Make sure there are no stray daemons running
+        stopTorDaemon(false)
+
         appCacheHome = getDir(DIRECTORY_TOR_DATA, Application.MODE_PRIVATE)
+        fileTorrc = File(filesDir, TorServiceConstants.TORRC_ASSET_KEY)
 
-        fileTorrc = File(appBinHome, TorServiceConstants.TORRC_ASSET_KEY)
+        val torResourceInstaller = TorResourceInstaller(
+            this,
+            filesDir // install folder
+        )
 
-        try {
-            val torResourceInstaller = TorResourceInstaller(
-                this, // context
-                filesDir // install folder
-            )
+        val fileTorBin = torResourceInstaller.installResources()
 
-            val fileTorBin = torResourceInstaller.installResources()
+        val tor = runTorShellCmd(
+            fileTorBin
+        )
 
-            runTorShellCmd(
-                fileTorBin
-            )
+        if(tor) {
+            initControlConnection()
 
-        } catch (e: java.lang.Exception) {
-            e.printStackTrace()
-            logNotice(e.message!!)
+            val onionPort = checkPort(5555)
+            addOnion(onionPort)
         }
     }
 
@@ -77,13 +100,20 @@ class TorService: IntentService(TorService::class.simpleName) {
 
         extraLines.append("RunAsDaemon 1").append('\n')
 
-        controlPort = checkPort(9051)
+        controlPort = checkPort(prefs.controlPort)
+        prefs.controlPort = controlPort
         extraLines.append("ControlPort ").append(controlPort).append('\n')
 
-        socksPort = checkPort(9050)
+        socksPort = checkPort(prefs.socksPort)
+        prefs.socksPort = socksPort
         extraLines.append("SOCKSPort ").append(socksPort).append('\n')
 
-        extraLines.append("CookieAuthentication 0")
+        extraLines.append("CookieAuthentication 0").append('\n')
+
+
+        val logFile = File(filesDir, "tor")
+        logFile.mkdirs()
+        extraLines.append("Log notice file ${logFile.canonicalPath}/notices.log")
 
         Log.d("TORRC","torrc.custom=\n$extraLines")
 
@@ -98,10 +128,11 @@ class TorService: IntentService(TorService::class.simpleName) {
     }
 
     private fun runTorShellCmd(fileTorBin: File): Boolean {
-
-        /* Default torrc file is being created by tor-android lib
-           so there is a need for overwrite it with custom file
-           containing all the proper configuration */
+        /**
+         * Default torrc file is being created by tor-android lib
+         * so there is a need for overwrite it with custom file
+         * containing all the proper configuration
+         * **/
         val fileTorrcCustom: File? = updateTorrcCustomFile()
         if ((fileTorrcCustom?.exists()) == false || (fileTorrcCustom?.canRead()) == false) {
             return false
@@ -116,7 +147,7 @@ class TorService: IntentService(TorService::class.simpleName) {
         var exitCode = try {
             shellExec("$command --verify-config")
         } catch (e: Exception) {
-            logNotice("Tor configuration did not verify: " + e.message, e)
+            Log.e("TOR_ERR", "Tor configuration did not verify: " + e.message, e)
             return false
         }
 
@@ -124,19 +155,55 @@ class TorService: IntentService(TorService::class.simpleName) {
             exitCode = try {
                 shellExec(command)
             } catch (e: Exception) {
-                logNotice("Tor was unable to start: " + e.message, e)
+                Log.e("TOR_ERR", "Tor was unable to start: " + e.message, e)
                 return false
             }
 
             if(exitCode != 0) {
-                logNotice("Tor did not start. Exit: $exitCode")
+                Log.e("TOR_ERR", "Tor did not start. Exit: $exitCode")
                 return false
             }
-
-            initControlConnection()
         }
 
         return true
+    }
+
+    private fun stopTorDaemon(waitForConnection: Boolean) {
+        var tryCount = 0
+
+        while (tryCount++ < 3) {
+            if (conn != null) {
+                Log.d(TAG_TOR, "Deleting all existing hidden services")
+                onions.map { onion ->
+                    conn!!.delOnion(onion.address)
+                    Log.i(TAG_TOR, "${onion.address} deleted")
+                }
+                onions.clear()
+                Log.d(TAG_TOR, "Using control port to shutdown Tor")
+                try {
+                    conn!!.shutdownTor("HALT")
+                } catch (e: IOException) {
+                    Log.e("TOR_ERR", "Error shutting down Tor via connection: " + e.message, e)
+                }
+                conn = null
+                break
+            }
+            if (!waitForConnection) break
+            try {
+                Thread.sleep(3000)
+            } catch (e: java.lang.Exception) { }
+        }
+    }
+
+    private fun stopTorAsync() {
+        Thread {
+            Log.d(TAG_TOR, "Stopping Tor")
+            try {
+                stopTorDaemon(true)
+            } catch (e: java.lang.Exception) {
+                Log.e("TOR_ERR", "An error occurred stopping Tor: " + e.message, e)
+            }
+        }.start()
     }
 
     private fun initControlConnection() {
@@ -144,58 +211,75 @@ class TorService: IntentService(TorService::class.simpleName) {
         socket.soTimeout = 60000
         conn = TorControlConnection(socket)
 
-        conn?.launchThread(true)
+        conn!!.launchThread(true)
 
         conn!!.authenticate(byteArrayOf(0))
-
-        addOnion()
     }
 
-    private fun addOnion() {
-        val res = conn!!.addOnion("NEW:BEST", mutableMapOf(5555 to "127.0.0.1:5555"), listOf("Detach"))
+    private fun addOnion(port: Int) {
+        val res = try {
+            conn!!.addOnion(prefs.onionPrivKey, mutableMapOf(port to "127.0.0.1:$port"), listOf("Detach"))
+        } catch(e: IllegalArgumentException) {
+            // Invalid priv key
+            conn!!.addOnion("NEW:BEST", mutableMapOf(port to "127.0.0.1:$port"), listOf("Detach"))
+        }
+
         val address = res["onionAddress"].toString()
         val key = res["onionPrivKey"].toString()
 
-        Log.d("TOR", "Hidden service created with address $address.onion")
+        prefs.onionPrivKey = key
+
+        Log.d(TAG_TOR, "Hidden service created with address $address.onion")
+        onions.add(
+            Onion(
+                address = address,
+                key = key,
+                port = port
+            )
+        )
 
         val bundle = Bundle()
         bundle.putString("ADDRESS", address)
-        bundle.putInt("PORT", 5555)
+        bundle.putInt("PORT", port)
         bundle.putInt("SOCKS", socksPort)
-        receiver?.send(0, bundle)
-    }
-
-    private fun checkPort(port: Int): Int {
-        var isPortUsed = true
-        var _port = port
-        while (isPortUsed) {
-            isPortUsed = isPortOpen("127.0.0.1", port, 500)
-            if (isPortUsed) //the specified port is not available, so let Tor find one instead
-                _port++
-        }
-        return _port
-    }
-
-    private fun isPortOpen(ip: String?, port: Int, timeout: Int): Boolean {
-        return try {
-            val socket = Socket()
-            socket.connect(InetSocketAddress(ip, port), timeout)
-            socket.close()
-            true
-        } catch (ce: ConnectException) {
-            false
-        } catch (ex: java.lang.Exception) {
-            false
-        }
+        client.onOnionAdded(bundle)
     }
 
     private fun shellExec(cmd: String): Int {
         val process = Shell.SH.run(cmd)
 
+        process.stderr.map {
+            Log.d("TOR_ERR", it)
+        }
         process.stdout.map {
-            Log.d("TOR", it)
+            Log.d(TAG_TOR, it)
         }
 
         return process.exitCode
+    }
+
+    override fun onBind(p0: Intent?): IBinder {
+        return binder
+    }
+
+    override fun onDestroy() {
+        stopTorAsync()
+        super.onDestroy()
+    }
+
+    interface Callbacks {
+        fun onOnionAdded(data: Bundle)
+    }
+
+    inner class LocalBinder: Binder() {
+        fun getService(): TorService {
+            return this@TorService
+        }
+    }
+
+    inner class IncomingIntentRouter(val intent: Intent?): Runnable {
+        override fun run() {
+            startTor()
+        }
     }
 }

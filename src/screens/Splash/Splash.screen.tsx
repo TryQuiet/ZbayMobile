@@ -1,20 +1,24 @@
-import React, {useEffect} from 'react';
-import {Text, View} from 'react-native';
-import {useDispatch, useSelector} from 'react-redux';
-import {publicChannelsSelectors} from '../../store/publicChannels/publicChannels.selectors';
-import {publicChannelsActions} from '../../store/publicChannels/publicChannels.slice';
+import React, {FC, useEffect} from 'react';
+import {View, Text} from 'react-native';
+import {useSelector} from 'react-redux';
+import {ScreenNames} from '../../const/ScreenNames.enum';
+import {storageSelectors} from '../../store/storage/storage.selectors';
+import {navigateTo} from '../../utils/functions/navigateTo/navigateTo';
 
-export const SplashScreen: React.FC = () => {
-  const channels = useSelector(publicChannelsSelectors.publicChannels);
-  const dispatch = useDispatch();
+export const SplashScreen: FC = () => {
+  const isStorageInitialized = useSelector(
+    storageSelectors.isStorageInitialized,
+  );
+
   useEffect(() => {
-    dispatch(publicChannelsActions.getPublicChannels);
-  }, [dispatch]);
+    if (isStorageInitialized) {
+      navigateTo(ScreenNames.MainScreen);
+    }
+  }, [isStorageInitialized]);
+
   return (
     <View>
-      {channels.map(channel => (
-        <Text>{channel.name}</Text>
-      ))}
+      <Text>{'SplashScreen'}</Text>
     </View>
   );
 };

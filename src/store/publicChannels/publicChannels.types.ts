@@ -1,13 +1,13 @@
-export type IPublicChannel = {
+export type IChannelInfo = {
   name: string;
   description: string;
   owner: string;
   timestamp: number;
   address: string;
-  keys: {ivk?: string; sk?: string};
+  keys?: {ivk?: string; sk?: string};
 };
 
-export type IPublicChannelMessage = {
+export type IMessage = {
   id: string;
   type: number;
   typeIndicator: number;

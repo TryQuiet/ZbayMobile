@@ -83,20 +83,20 @@ class AssetsInstaller(private val context: Context, private val asset: String?, 
                     archive.entries()
                         .toList()
                         .map { childEntry ->
-
                             val target = File(assetInstallDirectory, childEntry.name)
 
-                            // Keep original archive hierarchy
-                            target.parentFile?.mkdirs()
+                            if(!target.exists()) {
+                                // Keep original archive hierarchy
+                                target.parentFile?.mkdirs()
 
-                            if(!childEntry.isDirectory) {
-                                writeEntryFile(
-                                    archive = archive,
-                                    childEntry = childEntry,
-                                    target = target
-                                )
+                                if(!childEntry.isDirectory) {
+                                    writeEntryFile(
+                                        archive = archive,
+                                        childEntry = childEntry,
+                                        target = target
+                                    )
+                                }
                             }
-
                         }
                 } finally {
                     try {
@@ -134,5 +134,4 @@ class AssetsInstaller(private val context: Context, private val asset: String?, 
             }
         }
     }
-
 }

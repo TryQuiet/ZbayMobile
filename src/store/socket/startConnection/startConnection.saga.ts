@@ -6,9 +6,12 @@ import {eventChannel} from 'redux-saga';
 import {SocketActionTypes} from '../const/actionTypes';
 import {publicChannelsActions} from '../../publicChannels/publicChannels.slice';
 import {publicChannelsMasterSaga} from '../../publicChannels/publicChannels.master.saga';
+import {socketActions} from '../socket.slice';
+import {storageActions} from '../../storage/storage.slice';
 
 export function* startConnectionSaga(): Generator {
   const socket = yield* call(connect);
+  yield* put(socketActions.setConnected(true));
   yield fork(useIO, socket);
 }
 
@@ -38,14 +41,18 @@ export function* handleActions(socket: Socket): Generator {
 
 export function subscribe(socket: Socket) {
   return eventChannel<
+    | ReturnType<typeof storageActions.responseStorageInitialized>
     | ReturnType<typeof publicChannelsActions.responseGetPublicChannels>
-    | ReturnType<typeof publicChannelsActions.responseLoadAllMessages>
+    | ReturnType<typeof publicChannelsActions.responseFetchAllMessages>
   >(emit => {
+    socket.on(SocketActionTypes.RESPONSE_STORAGE_INITIALIZED, payload => {
+      emit(storageActions.responseStorageInitialized(payload));
+    });
     socket.on(SocketActionTypes.RESPONSE_GET_PUBLIC_CHANNELS, payload => {
       emit(publicChannelsActions.responseGetPublicChannels(payload));
     });
-    socket.on(SocketActionTypes.RESPONSE_LOAD_ALL_MESSAGES, payload => {
-      emit(publicChannelsActions.responseLoadAllMessages(payload));
+    socket.on(SocketActionTypes.RESPONSE_FETCH_ALL_MESSAGES, payload => {
+      emit(publicChannelsActions.responseFetchAllMessages(payload));
     });
     return () => {};
   });

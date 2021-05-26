@@ -20,6 +20,6 @@ export const publicChannelsSelectors = {
     reducerState =>
       publicChannelMessagesAdapter
         .getSelectors()
-        .selectAll(reducerState.messages[reducerState.currentChannelId]),
+        .selectAll(reducerState.messages),
   ),
 };

@@ -1,59 +1,117 @@
 package com.zbaymobile
 
-import android.app.IntentService
+import android.app.Service
 import android.content.Intent
+import android.os.Binder
+import android.os.Bundle
+import android.os.IBinder
+import android.util.Log
+import com.zbaymobile.Utils.Const
 import com.zbaymobile.Utils.Utils.exec
 import com.zbaymobile.Utils.Utils.getNativeLibraryDir
-import com.zbaymobile.Utils.Utils.getOutput
-import com.zbaymobile.Utils.Utils.logNotice
 import com.zbaymobile.Utils.Utils.setFilePermissions
-import java.io.File
+import java.io.*
+import java.util.concurrent.Executors
 
 
-class NodeJSService: IntentService(NodeJSService::class.simpleName) {
+class NodeJSService: Service() {
 
-    override fun onHandleIntent(intent: Intent?) {
-        try {
-            val filesDirectory = File(filesDir, "waggle/files")
+    private val binder = LocalBinder()
+    private val executor = Executors.newCachedThreadPool()
 
-            // Create ipfs paths
-            val channels = File(filesDirectory, "ZbayChannels")
-            channels.mkdirs()
-            setFilePermissions(channels)
+    private lateinit var client: Callbacks
 
-            val orbitdb = File(filesDirectory, "OrbitDB")
-            orbitdb.mkdirs()
-            setFilePermissions(orbitdb)
+    private var process: Process? = null
 
-            val hiddenServiceData = intent?.getBundleExtra("HIDDEN_SERVICE_DATA")
+    fun registerClient(client: Callbacks) {
+        this.client = client
+    }
 
-            val dynamicLibraries = File(filesDir, "libs/lib")
-            val waggle = File(filesDir, "waggle/waggle")
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
 
-            val nativeLibraryDir = getNativeLibraryDir(applicationContext)
-            val dir = File(nativeLibraryDir!!)
+        if(intent != null) {
+            executor.execute(IncomingIntentRouter(intent))
+        } else {
+            Log.e(Const.TAG_NODE, "Got null onStartCommand() intent")
+        }
 
-            val process = exec(
-                dir = dir,
-                command = arrayOf(
-                    "./libnode.so",
-                    "${waggle.canonicalPath}/lib/mobileWaggleManager.js",
-                    "-a", "${hiddenServiceData?.getString("ADDRESS")}.onion",
-                    "-p", "${hiddenServiceData?.getInt("PORT")}",
-                    "-s", "${hiddenServiceData?.getInt("SOCKS")}",
-                    "-d", "$filesDirectory"
-                ),
-                env = mapOf(
-                    "LD_LIBRARY_PATH" to "$dynamicLibraries",
-                    "HOME" to "$filesDirectory",
-                    "TMP_DIR" to "$filesDirectory"
-                )
+        return START_STICKY
+    }
+
+    private fun startWaggle(hiddenServiceData: Bundle?) {
+        DynamicLibrariesSetup(this).setupLibs()
+        WaggleSetup(this).setupWaggle()
+
+        val directory = File(getNativeLibraryDir(applicationContext)!!)
+        val libraries = File(filesDir, "usr/lib")
+        val files = File(filesDir, "waggle/files")
+
+        // Create paths
+        val channels = File(files, "ZbayChannels")
+        channels.mkdirs()
+        setFilePermissions(channels)
+
+        val orbitdb = File(files, "OrbitDB")
+        orbitdb.mkdirs()
+        setFilePermissions(orbitdb)
+
+        process = runCommand(
+            directory = directory,
+            libraries = libraries,
+            files = files,
+            hiddenServiceData = hiddenServiceData
+        )
+
+        client.onWaggleProcessStarted(process)
+
+    }
+
+    private fun runCommand(directory: File, libraries: File, files: File, hiddenServiceData: Bundle?): Process {
+        val waggle = File(filesDir, "waggle/waggle")
+        return exec(
+            dir = directory,
+            command = arrayOf(
+                "./libnode.so",
+                "${waggle.canonicalPath}/lib/mobileWaggleManager.js",
+                "DEBUG=libp2p*",
+                "-a", "${hiddenServiceData?.getString("ADDRESS")}.onion",
+                "-p", "${hiddenServiceData?.getInt("PORT")}",
+                "-s", "${hiddenServiceData?.getInt("SOCKS")}",
+                "-d", "$files"
+            ),
+            env = mapOf(
+                "LD_LIBRARY_PATH" to "$libraries",
+                "HOME" to "$files",
+                "TMP_DIR" to "$files",
+                // "DEBUG" to "libp2p:*,ipfs:*"
             )
-            // Log process response
-            getOutput(process)
-        } catch(e: java.lang.Exception) {
-            e.printStackTrace()
-            logNotice(e.message!!)
+        )
+    }
+
+    override fun onBind(p0: Intent?): IBinder {
+        return binder
+    }
+
+    override fun onDestroy() {
+        process?.destroy()
+        super.onDestroy()
+    }
+
+    interface Callbacks {
+        fun onWaggleProcessStarted(process: Process?)
+    }
+
+    inner class LocalBinder: Binder() {
+        fun getService(): NodeJSService {
+            return this@NodeJSService
+        }
+    }
+
+    inner class IncomingIntentRouter(val intent: Intent?): Runnable {
+        override fun run() {
+            val hiddenServiceData = intent?.getBundleExtra("HIDDEN_SERVICE_DATA")
+            startWaggle(hiddenServiceData)
         }
     }
 }

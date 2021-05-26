@@ -1,13 +1,18 @@
-import {createSlice} from '@reduxjs/toolkit';
+import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 
 import {StoreKeys} from '../store.keys';
 
-export const initialsocketSliceState = {};
+export class SocketState {
+  public isConnected: boolean = false;
+}
+
 export const socketSlice = createSlice({
-  initialState: initialsocketSliceState,
+  initialState: {...new SocketState()},
   name: StoreKeys.Socket,
   reducers: {
-    connectToWebsocketServer: state => state,
+    setConnected: (state, action: PayloadAction<boolean>) => {
+      state.isConnected = action.payload;
+    },
   },
 });
 

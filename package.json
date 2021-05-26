@@ -52,6 +52,7 @@
     "metro-react-native-babel-preset": "^0.64.0",
     "plop": "^2.7.4",
     "react-test-renderer": "17.0.1",
+    "redux-saga-test-plan": "^4.0.1",
     "typescript": "^3.8.3"
   },
   "resolutions": {
@@ -59,6 +60,9 @@
   },
   "jest": {
     "preset": "react-native",
+    "modulePathIgnorePatterns": [
+      "<rootDir>/codegen/"
+    ],
     "moduleFileExtensions": [
       "ts",
       "tsx",
@@ -66,6 +70,7 @@
       "jsx",
       "json",
       "node"
-    ]
+    ],
+    "rootDir": "src"
   }
 }

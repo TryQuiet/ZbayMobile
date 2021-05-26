@@ -1,7 +1,8 @@
 import {createEntityAdapter} from '@reduxjs/toolkit';
-import {IPublicChannelMessage, IPublicChannel} from './publicChannels.types';
+import {IMessage, IChannelInfo} from './publicChannels.types';
 
-export const publicChannelMessagesAdapter =
-  createEntityAdapter<IPublicChannelMessage>();
+export const publicChannelMessagesAdapter = createEntityAdapter<IMessage>();
 
-export const publicChannelsAdapter = createEntityAdapter<IPublicChannel>();
+export const publicChannelsAdapter = createEntityAdapter<IChannelInfo>({
+  selectId: channel => channel.name,
+});
