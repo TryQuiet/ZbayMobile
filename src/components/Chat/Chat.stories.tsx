@@ -1,10 +1,12 @@
 import { storiesOf } from '@storybook/react-native';
 import React from 'react';
+import { storybookLog } from '../../utils/functions/storybookLog/storybookLog.function';
 
 import { Chat } from './Chat.component';
 
 storiesOf('Chat', module).add('Default', () => (
   <Chat
+    sendMessageAction={storybookLog('Message sent')}
     channel={{
       name: 'Zbay',
       description: '',
