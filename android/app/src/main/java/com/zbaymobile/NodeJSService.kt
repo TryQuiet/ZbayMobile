@@ -41,7 +41,7 @@ class NodeJSService: Service() {
 
     private fun startWaggle(hiddenServiceData: Bundle?) {
         DynamicLibrariesSetup(this).setupLibs()
-        WaggleSetup(this).setupWaggle()
+        // WaggleSetup(this).setupWaggle()
 
         val directory = File(getNativeLibraryDir(applicationContext)!!)
         val libraries = File(filesDir, "usr/lib")
@@ -68,7 +68,7 @@ class NodeJSService: Service() {
     }
 
     private fun runCommand(directory: File, libraries: File, files: File, hiddenServiceData: Bundle?): Process {
-        val waggle = File(filesDir, "waggle/waggle")
+        val waggle = File(filesDir, "waggle")
         return exec(
             dir = directory,
             command = arrayOf(
