@@ -1,4 +1,5 @@
-export enum StoreKeys { Init = 'Init',
+export enum StoreKeys {
+  Init = 'Init',
   Assets = 'Assets',
   NativeServices = 'NativeServices',
   Socket = 'Socket',
