@@ -32,15 +32,15 @@ export function* startDownload(
 
   while (true) {
     const action = yield* take(downloadChannel);
-    if (action.type === assetsActions.throwDownloadCompleted.type) {
+    if (action.type === assetsActions.setDownloadCompleted.type) {
       const sum = yield* call(md5Check, path, md5sum);
       if (sum) {
         yield completeDownload(path, versionAction);
       } else {
-        yield throwDownloadError('md5sum incorrect');
+        throw new Error(
+          "Invalid md5sum. Looks like you're trying to download wrong file. Make sure your internet connection can be trusted.",
+        );
       }
-    } else if (action.type === assetsActions.throwDownloadError.type) {
-      yield throwDownloadError('err');
     } else {
       yield put(action);
     }
@@ -68,9 +68,4 @@ export function* completeDownload(
   yield unzipAssets(path);
   yield unlinkAssets(path);
   yield put(setVersion);
-}
-
-export function* throwDownloadError(err: string): Generator {
-  console.log(err);
-  // TODO: Change screen and handle error
 }

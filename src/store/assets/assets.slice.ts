@@ -7,7 +7,6 @@ export class AssetsState {
   public currentLibsVersion: string = '';
   public downloadHint: string = '';
   public downloadProgress: number = 0;
-  public downloadError: string = '';
 }
 
 export const assetsSlice = createSlice({
@@ -26,11 +25,8 @@ export const assetsSlice = createSlice({
     setDownloadProgress: (state, action: PayloadAction<number>) => {
       state.downloadProgress = action.payload;
     },
-    throwDownloadError: (state, action: PayloadAction<string>) => {
-      state.downloadError = action.payload;
-    },
-    throwDownloadCompleted: state => state,
-    setAssetsReady: state => state,
+    setDownloadCompleted: state => state,
+    retryDownload: state => state,
   },
 });
 

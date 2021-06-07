@@ -1,3 +1,4 @@
+import { ErrorScreen } from './screens/Error/Error.screen';
 import { MainScreen } from './screens/Main/Main.screen';
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
@@ -34,6 +35,7 @@ export default function App(): JSX.Element {
                 name={ScreenNames.SplashScreen}
               />
               <Screen component={MainScreen} name={ScreenNames.MainScreen} />
+              <Screen component={ErrorScreen} name={ScreenNames.ErrorScreen} />
             </Navigator>
           </ThemeProvider>
         </NavigationContainer>

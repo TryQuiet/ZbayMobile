@@ -6,8 +6,7 @@ import { END } from 'redux-saga';
 export const downloadAssets = (url: string, path: string) => {
   return eventChannel<
     | ReturnType<typeof assetsActions.setDownloadProgress>
-    | ReturnType<typeof assetsActions.throwDownloadError>
-    | ReturnType<typeof assetsActions.throwDownloadCompleted>
+    | ReturnType<typeof assetsActions.setDownloadCompleted>
   >(emit => {
     (async () => {
       const download = downloadFile({
@@ -23,10 +22,10 @@ export const downloadAssets = (url: string, path: string) => {
 
       const downloadResult = await download.promise;
 
-      if (downloadResult.statusCode !== 200) {
-        emit(assetsActions.throwDownloadError('HTTP ' + downloadResult));
+      if (downloadResult.statusCode === 200) {
+        emit(assetsActions.setDownloadCompleted());
       } else {
-        emit(assetsActions.throwDownloadCompleted());
+        throw new Error('');
       }
 
       emit(END);
