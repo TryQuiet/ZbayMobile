@@ -4,7 +4,9 @@ import { StoreKeys } from '../store.keys';
 
 export class AssetsState {
   public currentWaggleVersion: string = '';
+  public currentLibsVersion: string = '';
   public downloadProgress: number = 0;
+  public downloadError: string = '';
 }
 
 export const assetsSlice = createSlice({
@@ -14,9 +16,16 @@ export const assetsSlice = createSlice({
     setCurrentWaggleVersion: (state, action: PayloadAction<string>) => {
       state.currentWaggleVersion = action.payload;
     },
-    setProgress: (state, action: PayloadAction<number>) => {
+    setCurrentLibsVersion: (state, action: PayloadAction<string>) => {
+      state.currentLibsVersion = action.payload;
+    },
+    setDownloadProgress: (state, action: PayloadAction<number>) => {
       state.downloadProgress = action.payload;
     },
+    throwDownloadError: (state, action: PayloadAction<string>) => {
+      state.downloadError = action.payload;
+    },
+    throwDownloadCompleted: state => state,
   },
 });
 

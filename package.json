@@ -18,6 +18,7 @@
     "@reduxjs/toolkit": "^1.5.1",
     "i18next": "^20.2.2",
     "luxon": "^1.27.0",
+    "md5-file": "^5.0.0",
     "react": "17.0.1",
     "react-i18next": "^11.8.15",
     "react-native": "0.64.0",
