@@ -11,41 +11,38 @@ import { assetsActions } from '../assets.slice';
 export function* startDownload(
   s3: string,
   asset: string,
+  versionAction:
+    | ReturnType<typeof assetsActions.setCurrentLibsVersion>
+    | ReturnType<typeof assetsActions.setCurrentWaggleVersion>,
   version: string,
   md5sum: string,
 ): Generator {
-  const absolutePath = DocumentDirectoryPath + '/' + asset;
-
   const abi = yield* call(getSupportedAbi);
 
   const url = s3 + '/' + version + '/' + abi + '/' + asset + '.zip';
+  const path = DocumentDirectoryPath + '/' + asset + '.zip';
 
   console.log(url);
 
   // Get rid of outdated assets
-  yield* fork(unlinkAssets, absolutePath);
+  const unzipped = path.replace(/\.[^/.]+$/, '');
+  yield fork(unlinkAssets, unzipped);
 
-  const downloadChannel = yield* call(
-    downloadAssets,
-    url,
-    absolutePath,
-    '.zip',
-  );
+  const downloadChannel = yield* call(downloadAssets, url, path);
 
   while (true) {
     const action = yield* take(downloadChannel);
     if (action.type === assetsActions.throwDownloadCompleted.type) {
-      const sum = yield* call(md5Check, absolutePath, md5sum);
+      const sum = yield* call(md5Check, path, md5sum);
       if (sum) {
-        const setVersion = assetsActions.setCurrentWaggleVersion(version);
-        yield* fork(completeDownload, absolutePath, setVersion);
+        yield completeDownload(path, versionAction);
       } else {
-        yield* fork(throwDownloadError);
+        yield throwDownloadError('md5sum incorrect');
       }
     } else if (action.type === assetsActions.throwDownloadError.type) {
-      yield* fork(throwDownloadError);
+      yield throwDownloadError('err');
     } else {
-      yield* put(action);
+      yield put(action);
     }
   }
 }
@@ -68,11 +65,12 @@ export function* completeDownload(
     | ReturnType<typeof assetsActions.setCurrentWaggleVersion>
     | ReturnType<typeof assetsActions.setCurrentLibsVersion>,
 ): Generator {
-  yield* fork(unzipAssets, path);
-  yield* fork(unlinkAssets, path);
-  yield* put(setVersion);
+  yield unzipAssets(path);
+  yield unlinkAssets(path);
+  yield put(setVersion);
 }
 
-export function* throwDownloadError(): Generator {
+export function* throwDownloadError(err: string): Generator {
+  console.log(err);
   // TODO: Change screen and handle error
 }

@@ -1,19 +1,11 @@
 import React, { FC } from 'react';
-import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { Typography } from '../../components/Typography/Typography.component';
+import { Loading } from '../../components/Loading/Loading.component';
 import { assetsSelectors } from '../../store/assets/assets.selectors';
 
 export const SplashScreen: FC = () => {
+  const hint = useSelector(assetsSelectors.downloadHint);
   const progress = useSelector(assetsSelectors.downloadProgress);
 
-  return (
-    <View>
-      {progress > 0 && (
-        <Typography fontSize={14}>
-          {'Download progress: ' + progress}
-        </Typography>
-      )}
-    </View>
-  );
+  return <Loading progress={progress / 100} description={hint} />;
 };

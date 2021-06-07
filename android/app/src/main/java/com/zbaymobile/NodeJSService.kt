@@ -40,11 +40,8 @@ class NodeJSService: Service() {
     }
 
     private fun startWaggle(hiddenServiceData: Bundle?) {
-        DynamicLibrariesSetup(this).setupLibs()
-        // WaggleSetup(this).setupWaggle()
-
         val directory = File(getNativeLibraryDir(applicationContext)!!)
-        val libraries = File(filesDir, "usr/lib")
+        val libraries = File(filesDir, "libs")
         val files = File(filesDir, "waggle/files")
 
         // Create paths
@@ -63,6 +60,7 @@ class NodeJSService: Service() {
             hiddenServiceData = hiddenServiceData
         )
 
+        Thread.sleep(2000)
         client.onWaggleProcessStarted(process)
 
     }

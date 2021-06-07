@@ -1,6 +1,7 @@
-import { fork } from 'typed-redux-saga';
+import { all, takeEvery } from 'typed-redux-saga';
+import { assetsActions } from '../assets/assets.slice';
 import { startServicesSaga } from './startServices/startServices.saga';
 
 export function* nativeServicesMasterSaga(): Generator {
-  yield* fork(startServicesSaga);
+  yield all([takeEvery(assetsActions.setAssetsReady.type, startServicesSaga)]);
 }

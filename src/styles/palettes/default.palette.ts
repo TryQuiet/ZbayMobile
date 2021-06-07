@@ -1,6 +1,9 @@
 import { Palette } from 'styled-components';
 
 export const defaultPalette: Palette = {
+  main: {
+    brand: '#521C74',
+  },
   statusBar: {
     main: '#CB444E',
   },
