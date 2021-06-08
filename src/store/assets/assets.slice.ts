@@ -25,6 +25,7 @@ export const assetsSlice = createSlice({
     setDownloadProgress: (state, action: PayloadAction<number>) => {
       state.downloadProgress = action.payload;
     },
+    setDownloadError: (state, _action: PayloadAction<string>) => state,
     setDownloadCompleted: state => state,
     retryDownload: state => state,
   },

@@ -20,13 +20,13 @@ export function* checkWaggleVersionSaga(): Generator {
     while (true) {
       try {
         yield* call(navigateTo, ScreenNames.SplashScreen);
-        yield startDownload(
+        yield* startDownload(
           url,
           'waggle',
-          assetsActions.setCurrentWaggleVersion(Config.WAGGLE_VERSION),
           Config.WAGGLE_VERSION,
           Config.WAGGLE_MD5,
         );
+        yield put(assetsActions.setCurrentWaggleVersion(Config.WAGGLE_VERSION));
         break;
       } catch (e) {
         yield* call(navigateTo, ScreenNames.ErrorScreen, {

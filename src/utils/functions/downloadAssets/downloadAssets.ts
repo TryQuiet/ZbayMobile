@@ -7,6 +7,7 @@ export const downloadAssets = (url: string, path: string) => {
   return eventChannel<
     | ReturnType<typeof assetsActions.setDownloadProgress>
     | ReturnType<typeof assetsActions.setDownloadCompleted>
+    | ReturnType<typeof assetsActions.setDownloadError>
   >(emit => {
     (async () => {
       const download = downloadFile({
@@ -25,7 +26,11 @@ export const downloadAssets = (url: string, path: string) => {
       if (downloadResult.statusCode === 200) {
         emit(assetsActions.setDownloadCompleted());
       } else {
-        throw new Error('');
+        emit(
+          assetsActions.setDownloadError(
+            `Could not download files. Download result status code is ${downloadResult.statusCode}`,
+          ),
+        );
       }
 
       emit(END);

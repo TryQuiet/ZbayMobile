@@ -18,19 +18,15 @@ export function* checkLibsVersionSaga(): Generator {
     while (true) {
       try {
         yield* call(navigateTo, ScreenNames.SplashScreen);
-        yield* startDownload(
-          url,
-          'libs',
-          assetsActions.setCurrentLibsVersion(Config.LIBS_VERSION),
-          Config.LIBS_VERSION,
-          Config.LIBS_MD5,
-        );
+        yield* startDownload(url, 'libs', Config.LIBS_VERSION, Config.LIBS_MD5);
+        yield put(assetsActions.setCurrentLibsVersion(Config.LIBS_VERSION));
         break;
-      } catch (err) {
+      } catch (e) {
         yield* call(navigateTo, ScreenNames.ErrorScreen, {
-          error: err,
+          error: (e as Error).message,
         });
         yield take(assetsActions.retryDownload.type);
+        break;
       }
     }
   }

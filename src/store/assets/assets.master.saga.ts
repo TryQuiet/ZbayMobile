@@ -3,7 +3,7 @@ import { checkLibsVersionSaga } from './checkLibsVersion/checkLibsVersion.saga';
 import { checkWaggleVersionSaga } from './checkWaggleVersion/checkWaggleVersion.saga';
 
 export function* assetsMasterSaga(): Generator {
-  yield checkLibsVersionSaga();
-  yield checkWaggleVersionSaga();
-  yield startServicesSaga();
+  yield* checkLibsVersionSaga();
+  yield* checkWaggleVersionSaga();
+  yield* startServicesSaga();
 }
