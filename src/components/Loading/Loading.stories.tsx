@@ -8,6 +8,16 @@ storiesOf('Loading', module)
     <Loading
       progress={0.3}
       description={'Downloading tools to protect your privacy'}
+      checks={[
+        {
+          event: 'websocket connected',
+          passed: true,
+        },
+        {
+          event: 'channels replicated',
+          passed: false,
+        },
+      ]}
     />
   ))
   .add('< 0', () => (
