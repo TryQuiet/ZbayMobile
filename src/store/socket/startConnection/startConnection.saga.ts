@@ -7,10 +7,14 @@ import { SocketActionTypes } from '../const/actionTypes';
 import { publicChannelsActions } from '../../publicChannels/publicChannels.slice';
 import { publicChannelsMasterSaga } from '../../publicChannels/publicChannels.master.saga';
 import { socketActions } from '../socket.slice';
+import { initActions } from '../../init/init.slice';
 
 export function* startConnectionSaga(): Generator {
   const socket = yield* call(connect);
   yield* put(socketActions.setConnected(true));
+  yield* put(
+    initActions.updateInitCheck({ event: 'websocket connected', passed: true }),
+  );
   yield fork(useIO, socket);
 }
 

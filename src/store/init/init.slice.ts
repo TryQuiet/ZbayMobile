@@ -16,8 +16,20 @@ export const initSlice = createSlice({
     setStoreReady: state => {
       initChecksAdapter.setAll(state.initChecks, [
         {
-          event: 'waggle service started',
+          event: 'native services started',
           passed: false,
+        },
+        {
+          event: 'tor initialized',
+          passed: true,
+        },
+        {
+          event: 'onion address added',
+          passed: true,
+        },
+        {
+          event: 'waggle started',
+          passed: true,
         },
         {
           event: 'websocket connected',
