@@ -1,12 +1,12 @@
-import {io, Socket} from 'socket.io-client';
-import {fork} from 'redux-saga/effects';
-import {all, call, put, take} from 'typed-redux-saga';
+import { io, Socket } from 'socket.io-client';
+import { fork } from 'redux-saga/effects';
+import { all, call, put, take } from 'typed-redux-saga';
 import config from '../config';
-import {eventChannel} from 'redux-saga';
-import {SocketActionTypes} from '../const/actionTypes';
-import {publicChannelsActions} from '../../publicChannels/publicChannels.slice';
-import {publicChannelsMasterSaga} from '../../publicChannels/publicChannels.master.saga';
-import {socketActions} from '../socket.slice';
+import { eventChannel } from 'redux-saga';
+import { SocketActionTypes } from '../const/actionTypes';
+import { publicChannelsActions } from '../../publicChannels/publicChannels.slice';
+import { publicChannelsMasterSaga } from '../../publicChannels/publicChannels.master.saga';
+import { socketActions } from '../socket.slice';
 
 export function* startConnectionSaga(): Generator {
   const socket = yield* call(connect);
