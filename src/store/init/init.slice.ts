@@ -21,15 +21,15 @@ export const initSlice = createSlice({
         },
         {
           event: 'tor initialized',
-          passed: true,
+          passed: false,
         },
         {
           event: 'onion address added',
-          passed: true,
+          passed: false,
         },
         {
           event: 'waggle started',
-          passed: true,
+          passed: false,
         },
         {
           event: 'websocket connected',
