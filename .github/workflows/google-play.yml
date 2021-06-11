@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - improvement/ci
     paths:
       - android/app/build.gradle
 
@@ -35,13 +36,13 @@ jobs:
           mkdir -p $HOME/.gradle
 
           printf "\
-          THULIUM_UPLOAD_STORE_FILE=thulium.keystore\n\
-          THULIUM_UPLOAD_KEY_ALIAS=thulium\n\
-          THULIUM_UPLOAD_STORE_PASSWORD=${{ SECRETS.GOOGLE_KEYSTORE_PASSWORD }}\n\
-          THULIUM_UPLOAD_KEY_PASSWORD=${{ SECRETS.GOOGLE_KEYSTORE_PASSWORD }}\
+          ZBAY_MOBILE_UPLOAD_STORE_FILE=zbaymobile.keystore\n\
+          ZBAY_MOBILE_UPLOAD_KEY_ALIAS=zbaymobile\n\
+          ZBAY_MOBILE_UPLOAD_STORE_PASSWORD=${{ SECRETS.GOOGLE_KEYSTORE_PASSWORD }}\n\
+          ZBAY_MOBILE_UPLOAD_KEY_PASSWORD=${{ SECRETS.GOOGLE_KEYSTORE_PASSWORD }}\
           " > $HOME/.gradle/gradle.properties
 
-          echo ${{ SECRETS.GOOGLE_KEYSTORE }} | base64 --decode > android/app/thulium.keystore
+          echo ${{ SECRETS.GOOGLE_KEYSTORE }} | base64 --decode > android/app/zbaymobile.keystore
 
       - name: Build for Android
         run: cd android && ./gradlew bundleRelease
@@ -60,7 +61,7 @@ jobs:
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJson: google-play.json
-          packageName: com.thulium.mobileapp
+          packageName: com.zbaymobile.mobileapp
           releaseFiles: ./android/app/build/outputs/bundle/release/app-release.aab
           track: internal
           whatsNewDirectory: distribution/whatsnew
