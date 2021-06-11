@@ -10,11 +10,23 @@ storiesOf('Loading', module)
       description={'Downloading tools to protect your privacy'}
       checks={[
         {
-          event: 'websocket connected',
+          event: 'native services started',
           passed: true,
         },
         {
-          event: 'channels replicated',
+          event: 'tor initialized',
+          passed: true,
+        },
+        {
+          event: 'onion address added',
+          passed: false,
+        },
+        {
+          event: 'waggle started',
+          passed: false,
+        },
+        {
+          event: 'websocket connected',
           passed: false,
         },
       ]}

@@ -1,5 +1,6 @@
 import React, { FC } from 'react';
 import { Image, View } from 'react-native';
+import deviceInfoModule from 'react-native-device-info';
 import * as Progress from 'react-native-progress';
 import { appImages } from '../../../assets';
 import { defaultTheme } from '../../styles/themes/default.theme';
@@ -43,10 +44,15 @@ export const Loading: FC<LoadingProps> = ({
           />
         )}
       </View>
-      <View style={{ marginTop: 40 }}>
+      <View style={{ marginTop: 40, alignItems: 'flex-start' }}>
         {checks?.map(item => (
           <InitCheck key={item.event} event={item.event} passed={item.passed} />
         ))}
+      </View>
+      <View style={{ margin: 20 }}>
+        <Typography fontSize={12} color={'greyDark'}>
+          {`v ${deviceInfoModule.getVersion()}`}
+        </Typography>
       </View>
     </View>
   );

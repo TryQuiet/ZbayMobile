@@ -8,9 +8,6 @@ export const SplashScreen: FC = () => {
   const hint = useSelector(assetsSelectors.downloadHint);
   const progress = useSelector(assetsSelectors.downloadProgress);
   const checks = useSelector(initSelectors.initChecks);
-
-  console.log(checks);
-
   return (
     <Loading progress={progress / 100} description={hint} checks={checks} />
   );

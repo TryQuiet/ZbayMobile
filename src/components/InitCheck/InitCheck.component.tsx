@@ -17,11 +17,11 @@ export const InitCheck: FC<InitCheckProps> = ({ event, passed }) => {
         style={{
           margin: 5,
           resizeMode: 'cover',
-          width: 16,
-          height: 16,
+          width: 14,
+          height: 14,
         }}
       />
-      <Typography fontSize={14} color={color}>
+      <Typography fontSize={12} color={color}>
         {event}
       </Typography>
     </View>
