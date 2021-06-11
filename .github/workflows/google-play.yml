@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - improvement/ci
     paths:
       - android/app/build.gradle
 
