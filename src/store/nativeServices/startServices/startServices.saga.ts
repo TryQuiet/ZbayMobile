@@ -2,6 +2,7 @@ import { NativeModules } from 'react-native';
 import { put, call } from 'typed-redux-saga';
 import { assetsActions } from '../../assets/assets.slice';
 import { initActions } from '../../init/init.slice';
+import { InitCheckKeys } from '../../init/initCheck.keys';
 
 export function* startServicesSaga(): Generator {
   yield* put(
@@ -11,7 +12,7 @@ export function* startServicesSaga(): Generator {
   );
   yield* put(
     initActions.updateInitCheck({
-      event: 'native services started',
+      event: InitCheckKeys.NativeServices,
       passed: true,
     }),
   );

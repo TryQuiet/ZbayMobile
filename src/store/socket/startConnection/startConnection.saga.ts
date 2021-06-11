@@ -8,12 +8,20 @@ import { publicChannelsActions } from '../../publicChannels/publicChannels.slice
 import { publicChannelsMasterSaga } from '../../publicChannels/publicChannels.master.saga';
 import { socketActions } from '../socket.slice';
 import { initActions } from '../../init/init.slice';
+import { InitCheckKeys } from '../../init/initCheck.keys';
+import { assetsActions } from '../../assets/assets.slice';
 
 export function* startConnectionSaga(): Generator {
   const socket = yield* call(connect);
   yield* put(socketActions.setConnected(true));
   yield* put(
-    initActions.updateInitCheck({ event: 'websocket connected', passed: true }),
+    assetsActions.setDownloadHint('Replicating data from distributed database'),
+  );
+  yield* put(
+    initActions.updateInitCheck({
+      event: InitCheckKeys.Websocket,
+      passed: true,
+    }),
   );
   yield fork(useIO, socket);
 }
