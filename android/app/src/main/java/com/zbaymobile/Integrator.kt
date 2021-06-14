@@ -11,6 +11,7 @@ import android.util.Log
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.zbaymobile.Utils.Utils.getOutput
 
 
@@ -60,8 +61,28 @@ class Integrator(private val context: ReactContext): ReactContextBaseJavaModule(
         context.bindService(torService, serviceConnection, Context.BIND_AUTO_CREATE)
     }
 
+    override fun onTorInit() {
+        context
+            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                .emit("onTorInit", true)
+    }
+
     override fun onOnionAdded(data: Bundle) {
+        context
+            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+            .emit("onOnionAdded", true)
+
         initWaggle(data)
+    }
+
+    override fun onWaggleProcessStarted(process: Process?) {
+        if(process != null) {
+            context
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                .emit("onWaggleStarted", true)
+
+            getOutput(process)
+        }
     }
 
     private fun initWaggle(data: Bundle) {
@@ -77,10 +98,6 @@ class Integrator(private val context: ReactContext): ReactContextBaseJavaModule(
             override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
                 val service = (binder as NodeJSService.LocalBinder).getService()
                 service.registerClient(this@Integrator)
-                val process = service.getRunningProcess()
-                if(process != null) {
-                    getOutput(process)
-                }
             }
 
             override fun onServiceDisconnected(p0: ComponentName?) {}
