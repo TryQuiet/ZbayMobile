@@ -1,17 +1,24 @@
 package com.zbaymobile
 
-import android.app.Application
-import android.app.Service
+import android.app.*
+import android.content.Context
 import android.content.Intent
 import android.os.Binder
+import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
+import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
 import com.jaredrummler.android.shell.Shell
 import com.zbaymobile.Scheme.Onion
 import com.zbaymobile.Utils.Const.DEFAULT_CONTROL_PORT
 import com.zbaymobile.Utils.Const.DEFAULT_SOCKS_PORT
 import com.zbaymobile.Utils.Const.DIRECTORY_TOR_DATA
+import com.zbaymobile.Utils.Const.NOTIFICATION_CHANNEL_ID
+import com.zbaymobile.Utils.Const.NOTIFICATION_FOREGROUND_SERVICE_ID
+import com.zbaymobile.Utils.Const.SERVICE_ACTION_EXECUTE
+import com.zbaymobile.Utils.Const.SERVICE_ACTION_STOP
 import com.zbaymobile.Utils.Const.TAG_TOR
 import com.zbaymobile.Utils.Utils.checkPort
 import com.zbaymobile.torcontrol.TorControlConnection
@@ -23,6 +30,9 @@ import java.util.concurrent.Executors
 
 
 class TorService: Service() {
+
+    private var notificationManager: NotificationManager? = null
+    private var notificationBuilder: NotificationCompat.Builder? = null
 
     private val binder = LocalBinder()
     private val executor = Executors.newCachedThreadPool()
@@ -39,6 +49,47 @@ class TorService: Service() {
 
     var onions = mutableListOf<Onion>()
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private fun createNotificationChannel() {
+        val notificationManager: NotificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        val name: CharSequence =
+            getString(R.string.app_name)
+
+        val channel =
+            NotificationChannel(NOTIFICATION_CHANNEL_ID, name, NotificationManager.IMPORTANCE_LOW)
+
+        notificationManager.createNotificationChannel(channel)
+    }
+
+    private fun buildNotification(): Notification {
+        val intent = packageManager.getLaunchIntentForPackage(packageName)
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
+
+        if(notificationBuilder == null) {
+            notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager?
+            notificationBuilder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+                .setContentTitle(getString(R.string.app_name))
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentIntent(pendingIntent)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .setOngoing(true)
+        }
+
+        // Set Exit button action
+        val exitIntent =
+            Intent(this, TorService::class.java).setAction(SERVICE_ACTION_STOP)
+
+        notificationBuilder!!.addAction(
+            android.R.drawable.ic_delete,
+            getString(R.string.close),
+            PendingIntent.getService(this, 0, exitIntent, 0)
+        )
+
+        return notificationBuilder!!.build()
+    }
+
     fun registerClient(client: Callbacks) {
         this.client = client
     }
@@ -49,12 +100,28 @@ class TorService: Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        super.onStartCommand(intent, flags, startId)
 
-        if(intent != null){
-            executor.execute(IncomingIntentRouter(intent))
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            createNotificationChannel()
+
+        val notification = buildNotification()
+        startForeground(NOTIFICATION_FOREGROUND_SERVICE_ID, notification)
+
+        val action = intent?.action
+        if(action != null){
+            when(action) {
+                SERVICE_ACTION_EXECUTE -> {
+                    Log.d(TAG_TOR, "Service executed")
+                    executor.execute(IncomingIntentRouter(intent))
+                }
+                SERVICE_ACTION_STOP -> {
+                    Log.d(TAG_TOR, "Service stopped")
+                    stopService()
+                }
+            }
+
         } else {
-            Log.d(TAG_TOR, "Got null onStartCommand() intent")
+            Log.d(TAG_TOR, "Got null onStartCommand() action")
         }
 
         return START_STICKY
@@ -264,8 +331,13 @@ class TorService: Service() {
         return binder
     }
 
-    override fun onDestroy() {
+    private fun stopService() {
         stopTorAsync()
+        stopForeground(true)
+    }
+
+    override fun onDestroy() {
+        stopService()
         super.onDestroy()
     }
 

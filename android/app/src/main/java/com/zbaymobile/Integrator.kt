@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
@@ -12,6 +13,7 @@ import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.modules.core.DeviceEventManagerModule
+import com.zbaymobile.Utils.Const.SERVICE_ACTION_EXECUTE
 import com.zbaymobile.Utils.Utils.getOutput
 
 
@@ -28,11 +30,16 @@ class Integrator(private val context: ReactContext): ReactContextBaseJavaModule(
     @ReactMethod
     fun initAndroidServices() {
 
-        val torService = Intent(context, TorService::class.java)
+        val service = Intent(context, TorService::class.java)
+            service.action = SERVICE_ACTION_EXECUTE
 
         if(!isMyServiceRunning(TorService::class.java)) {
             Log.i("Tor Service", "Starting new service")
-            context.startService(torService)
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(service)
+            } else {
+                context.startService(service)
+            }
         }
 
         val serviceConnection = object: ServiceConnection {
@@ -58,7 +65,8 @@ class Integrator(private val context: ReactContext): ReactContextBaseJavaModule(
 
             override fun onServiceDisconnected(p0: ComponentName?) {}
         }
-        context.bindService(torService, serviceConnection, Context.BIND_AUTO_CREATE)
+
+        context.bindService(service, serviceConnection, Context.BIND_AUTO_CREATE)
     }
 
     override fun onTorInit() {
