@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Binder
 import android.os.Build
-import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -19,7 +18,9 @@ import com.zbaymobile.Utils.Const.NOTIFICATION_CHANNEL_ID
 import com.zbaymobile.Utils.Const.NOTIFICATION_FOREGROUND_SERVICE_ID
 import com.zbaymobile.Utils.Const.SERVICE_ACTION_EXECUTE
 import com.zbaymobile.Utils.Const.SERVICE_ACTION_STOP
+import com.zbaymobile.Utils.Const.TAG_NODE
 import com.zbaymobile.Utils.Const.TAG_TOR
+import com.zbaymobile.Utils.Utils
 import com.zbaymobile.Utils.Utils.checkPort
 import net.freehaven.tor.control.TorControlConnection
 import org.torproject.jni.TorService
@@ -36,7 +37,7 @@ class WaggleService: Service() {
     private val executor = Executors.newCachedThreadPool()
 
     private lateinit var prefs: Prefs
-    private lateinit var client: Callbacks
+    private var client: Callbacks? = null
 
     private var torControlConnection: TorControlConnection? = null
     private var torServiceConnection: ServiceConnection? = null
@@ -45,7 +46,9 @@ class WaggleService: Service() {
     private var controlPort: Int = DEFAULT_CONTROL_PORT
     private var socksPort: Int = DEFAULT_SOCKS_PORT
 
-    var onions = mutableListOf<Onion>()
+    private var onions = mutableListOf<Onion>()
+
+    private var nodeProcess: Process? = null
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private fun createNotificationChannel() {
@@ -143,10 +146,14 @@ class WaggleService: Service() {
                     }
 
                     /** Tor has been successfully initialized **/
-                    client.onTorInit()
+                    client?.onTorInit()
 
                     val onionPort = checkPort(5555)
-                    addOnion(onionPort)
+                    val onion = addOnion(onionPort)
+                    onions.add(onion)
+                    client?.onOnionAdded()
+
+                    startWaggle(onion)
 
                 } catch(e: IOException) {
                     e.printStackTrace()
@@ -249,12 +256,20 @@ class WaggleService: Service() {
         }
     }
 
-    fun addOnion(port: Int) {
+    fun addOnion(port: Int): Onion {
         val res = try {
-            torControlConnection!!.addOnion(prefs.onionPrivKey, mutableMapOf(port to "127.0.0.1:$port"), listOf("Detach"))
-        } catch(e: IllegalArgumentException) {
+            torControlConnection!!.addOnion(
+                prefs.onionPrivKey,
+                mutableMapOf(port to "127.0.0.1:$port"),
+                listOf("Detach")
+            )
+        } catch (e: IllegalArgumentException) {
             // Invalid priv key
-            torControlConnection!!.addOnion("NEW:BEST", mutableMapOf(port to "127.0.0.1:$port"), listOf("Detach"))
+            torControlConnection!!.addOnion(
+                "NEW:BEST",
+                mutableMapOf(port to "127.0.0.1:$port"),
+                listOf("Detach")
+            )
         }
 
         val address = res["onionAddress"].toString()
@@ -263,19 +278,64 @@ class WaggleService: Service() {
         prefs.onionPrivKey = key
 
         Log.d(TAG_TOR, "Hidden service created with address $address.onion")
-        val onion = Onion(
+
+        return Onion(
             address = address,
             key = key,
             port = port
         )
-        onions.add(onion)
+    }
 
-        val bundle = Bundle()
-        bundle.putString("ADDRESS", address)
-        bundle.putInt("PORT", port)
-        bundle.putInt("SOCKS", socksPort)
+    private fun startWaggle(hiddenService: Onion) {
+        val directory = File(Utils.getNativeLibraryDir(applicationContext)!!)
+        val libraries = File(filesDir, "libs")
+        val files = File(filesDir, "waggle/files")
 
-        client.onOnionAdded(bundle)
+        // Create paths
+        val channels = File(files, "ZbayChannels")
+        channels.mkdirs()
+        Utils.setFilePermissions(channels)
+
+        val orbitdb = File(files, "OrbitDB")
+        orbitdb.mkdirs()
+        Utils.setFilePermissions(orbitdb)
+
+        nodeProcess = runWaggleCommand(
+            directory = directory,
+            libraries = libraries,
+            files = files,
+            hiddenService = hiddenService
+        )
+
+        for(i in 1..3) { // Wait for client to bind process
+            if(client != null) {
+                break
+            }
+            Log.d(TAG_NODE, "Waiting for client to bind process...")
+            Thread.sleep(500)
+        }
+        client?.onWaggleProcessStarted(nodeProcess)
+    }
+
+    private fun runWaggleCommand(directory: File, libraries: File, files: File, hiddenService: Onion): Process {
+        val waggle = File(filesDir, "waggle")
+        return Utils.exec(
+            dir = directory,
+            command = arrayOf(
+                "./libnode.so",
+                "${waggle.canonicalPath}/lib/mobileWaggleManager.js",
+                "DEBUG=libp2p*",
+                "-a", "${hiddenService.address}.onion",
+                "-p", "${hiddenService.port}",
+                "-s", "$socksPort",
+                "-d", "$files"
+            ),
+            env = mapOf(
+                "LD_LIBRARY_PATH" to "$libraries",
+                "HOME" to "$files",
+                "TMP_DIR" to "$files"
+            )
+        )
     }
 
     override fun onBind(p0: Intent?): IBinder {
@@ -284,6 +344,7 @@ class WaggleService: Service() {
 
     private fun stopService() {
         stopTor()
+        nodeProcess?.destroy()
         stopForeground(true)
     }
 
@@ -292,13 +353,18 @@ class WaggleService: Service() {
         super.onDestroy()
     }
 
-    fun registerClient(client: Callbacks) {
+    fun bindClient(client: Callbacks) {
         this.client = client
+    }
+
+    fun unbindClient() {
+        this.client = null
     }
 
     interface Callbacks {
         fun onTorInit()
-        fun onOnionAdded(data: Bundle)
+        fun onOnionAdded()
+        fun onWaggleProcessStarted(process: Process?)
     }
 
     inner class LocalBinder: Binder() {

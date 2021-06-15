@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Build
-import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import com.facebook.react.bridge.ReactContext
@@ -17,11 +16,9 @@ import com.zbaymobile.Utils.Const.SERVICE_ACTION_EXECUTE
 import com.zbaymobile.Utils.Utils.getOutput
 
 
-class Integrator(private val context: ReactContext): ReactContextBaseJavaModule(), WaggleService.Callbacks, NodeJSService.Callbacks {
+class Integrator(private val context: ReactContext): ReactContextBaseJavaModule(), WaggleService.Callbacks {
 
-    private val prefs =
-        (context.applicationContext as MainApplication)
-            .sharedPrefs
+    private var waggleService: WaggleService? = null
 
     override fun getName(): String {
         return "Integrator"
@@ -44,17 +41,13 @@ class Integrator(private val context: ReactContext): ReactContextBaseJavaModule(
 
         val serviceConnection = object: ServiceConnection {
             override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
-
-                val service = (binder as WaggleService.LocalBinder).getService()
-                service.registerClient(this@Integrator)
-                /**
-                 * onServiceConnected is being called every time client bind to running Service (even just after starting a new one)
-                 * so there is a need to check if Service has been running before last Activity restart
-                 * in that case running Waggle service should be bound or a new one started with data of currently existing hidden service
-                 * **/
+                waggleService = (binder as WaggleService.LocalBinder).getService()
+                waggleService?.bindClient(this@Integrator)
             }
 
-            override fun onServiceDisconnected(p0: ComponentName?) {}
+            override fun onServiceDisconnected(p0: ComponentName?) {
+                waggleService?.unbindClient()
+            }
         }
 
         context.bindService(service, serviceConnection, Context.BIND_AUTO_CREATE)
@@ -66,12 +59,10 @@ class Integrator(private val context: ReactContext): ReactContextBaseJavaModule(
                 .emit("onTorInit", true)
     }
 
-    override fun onOnionAdded(data: Bundle) {
+    override fun onOnionAdded() {
         context
             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
             .emit("onOnionAdded", true)
-
-        initWaggle(data)
     }
 
     override fun onWaggleProcessStarted(process: Process?) {
@@ -82,27 +73,6 @@ class Integrator(private val context: ReactContext): ReactContextBaseJavaModule(
 
             getOutput(process)
         }
-    }
-
-    private fun initWaggle(data: Bundle) {
-        val nodeService = Intent(context, NodeJSService::class.java)
-
-        if(!isMyServiceRunning(NodeJSService::class.java)) {
-            Log.i("NodeJS Service", "Starting new service")
-            nodeService.putExtra("HIDDEN_SERVICE_DATA", data)
-            context.startService(nodeService)
-        }
-
-        val serviceConnection = object: ServiceConnection {
-            override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
-                val service = (binder as NodeJSService.LocalBinder).getService()
-                service.registerClient(this@Integrator)
-            }
-
-            override fun onServiceDisconnected(p0: ComponentName?) {}
-        }
-
-        context.bindService(nodeService, serviceConnection, Context.BIND_AUTO_CREATE)
     }
 
     private fun isMyServiceRunning(serviceClass: Class<*>): Boolean {

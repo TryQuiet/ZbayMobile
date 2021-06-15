@@ -26,8 +26,5 @@
       </activity>
       <service
           android:name=".WaggleService" />
-
-      <service
-          android:name=".NodeJSService" />
     </application>
 </manifest>
