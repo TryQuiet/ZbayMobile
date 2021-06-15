@@ -17,7 +17,7 @@ import com.zbaymobile.Utils.Const.SERVICE_ACTION_EXECUTE
 import com.zbaymobile.Utils.Utils.getOutput
 
 
-class Integrator(private val context: ReactContext): ReactContextBaseJavaModule(), TorService.Callbacks, NodeJSService.Callbacks {
+class Integrator(private val context: ReactContext): ReactContextBaseJavaModule(), WaggleService.Callbacks, NodeJSService.Callbacks {
 
     private val prefs =
         (context.applicationContext as MainApplication)
@@ -30,10 +30,10 @@ class Integrator(private val context: ReactContext): ReactContextBaseJavaModule(
     @ReactMethod
     fun initAndroidServices() {
 
-        val service = Intent(context, TorService::class.java)
+        val service = Intent(context, WaggleService::class.java)
             service.action = SERVICE_ACTION_EXECUTE
 
-        if(!isMyServiceRunning(TorService::class.java)) {
+        if(!isMyServiceRunning(WaggleService::class.java)) {
             Log.i("Tor Service", "Starting new service")
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(service)
@@ -45,22 +45,13 @@ class Integrator(private val context: ReactContext): ReactContextBaseJavaModule(
         val serviceConnection = object: ServiceConnection {
             override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
 
-                val service = (binder as TorService.LocalBinder).getService()
+                val service = (binder as WaggleService.LocalBinder).getService()
                 service.registerClient(this@Integrator)
                 /**
                  * onServiceConnected is being called every time client bind to running Service (even just after starting a new one)
                  * so there is a need to check if Service has been running before last Activity restart
                  * in that case running Waggle service should be bound or a new one started with data of currently existing hidden service
                  * **/
-                if(service.onions.isNotEmpty()) {
-                    val onion = service.onions.first()
-                    val bundle = Bundle()
-                    bundle.putString("ADDRESS", onion.address)
-                    bundle.putInt("PORT", onion.port)
-                    // Socks port persistent data was updated during last Tor init
-                    bundle.putInt("SOCKS", prefs.socksPort)
-                    initWaggle(bundle)
-                }
             }
 
             override fun onServiceDisconnected(p0: ComponentName?) {}

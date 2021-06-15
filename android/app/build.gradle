@@ -221,13 +221,12 @@ dependencies {
 
     implementation "androidx.core:core-ktx:$kotlin_version"
 
-    implementation project(':tor-control')
     implementation project(':react-native-fs')
 
     implementation group: 'commons-io', name: 'commons-io', version: '2.6'
 
-    implementation 'org.torproject:tor-android-binary:0.4.4.6'
-    implementation 'com.jaredrummler:android-shell:1.0.0'
+    api 'info.guardianproject:jtorctl:0.4.5.7'
+    implementation 'info.guardianproject:tor-android:0.4.5.7'
 }
 
 // Run this once to be able to run the application with BUCK
