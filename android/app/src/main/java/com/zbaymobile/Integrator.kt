@@ -28,7 +28,7 @@ class Integrator(private val context: ReactApplicationContext): ReactContextBase
             service.action = SERVICE_ACTION_EXECUTE
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startService(service)
+            context.startForegroundService(service)
         } else {
             context.startService(service)
         }
@@ -59,7 +59,7 @@ class Integrator(private val context: ReactApplicationContext): ReactContextBase
             .emit("onOnionAdded", true)
     }
 
-    override fun onWaggleProcessStarted() {
+    override fun onWaggleStarted() {
         context
             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
             .emit("onWaggleStarted", true)
