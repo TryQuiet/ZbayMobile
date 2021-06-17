@@ -65,12 +65,12 @@ class WaggleService: Service() {
     }
 
     private fun buildNotification(): Notification {
-        val intent = packageManager.getLaunchIntentForPackage(packageName)
-        val pendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
+        val intent = Intent(applicationContext, MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(applicationContext, 0, intent, 0)
 
         if(notificationBuilder == null) {
             notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager?
-            notificationBuilder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+            notificationBuilder = NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL_ID)
                 .setContentTitle(getString(R.string.app_name))
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentIntent(pendingIntent)
@@ -80,14 +80,14 @@ class WaggleService: Service() {
 
         // Set Exit button action
         val exitIntent =
-            Intent(this, WaggleService::class.java).setAction(SERVICE_ACTION_STOP)
+            Intent(applicationContext, WaggleService::class.java).setAction(SERVICE_ACTION_STOP)
 
         notificationBuilder!!.addAction(
             android.R.drawable.ic_delete,
             getString(R.string.close),
-            PendingIntent.getService(this, 0, exitIntent, 0)
+            PendingIntent.getService(applicationContext, 0, exitIntent, 0)
         )
-
+        
         return notificationBuilder!!.build()
     }
 
@@ -98,11 +98,11 @@ class WaggleService: Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        /* if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             createNotificationChannel()
 
         val notification = buildNotification()
-        startForeground(NOTIFICATION_FOREGROUND_SERVICE_ID, notification)
+        startForeground(NOTIFICATION_FOREGROUND_SERVICE_ID, notification) */
 
         val action = intent?.action
         if(action != null){
@@ -314,7 +314,10 @@ class WaggleService: Service() {
             Log.d(TAG_NODE, "Waiting for client to bind process...")
             Thread.sleep(500)
         }
-        client?.onWaggleProcessStarted(nodeProcess)
+
+        Utils.getOutput(nodeProcess!!)
+
+        client?.onWaggleProcessStarted()
     }
 
     private fun runWaggleCommand(directory: File, libraries: File, files: File, hiddenService: Onion): Process {
@@ -345,7 +348,7 @@ class WaggleService: Service() {
     private fun stopService() {
         stopTor()
         nodeProcess?.destroy()
-        stopForeground(true)
+        // stopForeground(true)
     }
 
     override fun onDestroy() {
@@ -364,7 +367,7 @@ class WaggleService: Service() {
     interface Callbacks {
         fun onTorInit()
         fun onOnionAdded()
-        fun onWaggleProcessStarted(process: Process?)
+        fun onWaggleProcessStarted()
     }
 
     inner class LocalBinder: Binder() {
