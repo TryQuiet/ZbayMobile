@@ -24,10 +24,7 @@ describe('pushNotificationsSaga', () => {
           },
         },
       )
-      .provide([
-        [take(Platform.OS), 'android'],
-        [call(initPushNotifications), null],
-      ])
+      .provide([[call(initPushNotifications), null]])
       .call(initPushNotifications)
       .run();
   });

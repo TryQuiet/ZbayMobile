@@ -1,10 +1,9 @@
 import { AppRegistry, NativeModules, Platform } from 'react-native';
-import { call, take } from 'typed-redux-saga';
+import { call } from 'typed-redux-saga';
 import { pushNotifications } from '../../../services/pushNotifications/pushNotifications.service';
 
 export function* pushNotificationsSaga(): Generator {
-  const os = yield* take(Platform.OS);
-  if (os === 'android') {
+  if (Platform.OS === 'android') {
     yield* call(initPushNotifications);
   }
 }
