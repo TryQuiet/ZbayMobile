@@ -4,16 +4,16 @@ import { all, call, delay, put, take } from 'typed-redux-saga';
 import config from '../config';
 import { eventChannel } from 'redux-saga';
 import { SocketActionTypes } from '../const/actionTypes';
+import { nativeServicesActions } from '../../nativeServices/nativeServices.slice';
+import { assetsActions } from '../../assets/assets.slice';
 import { publicChannelsActions } from '../../publicChannels/publicChannels.slice';
 import { publicChannelsMasterSaga } from '../../publicChannels/publicChannels.master.saga';
-import { socketActions } from '../socket.slice';
 import { initActions } from '../../init/init.slice';
 import { InitCheckKeys } from '../../init/initCheck.keys';
-import { assetsActions } from '../../assets/assets.slice';
 
 export function* startConnectionSaga(): Generator {
   const socket = yield* call(connect);
-  yield* put(socketActions.setConnected(true));
+  yield* put(nativeServicesActions.initPushNotifications());
   yield* put(
     assetsActions.setDownloadHint('Replicating data from distributed database'),
   );
