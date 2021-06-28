@@ -66,7 +66,14 @@ export const publicChannelsSlice = createSlice({
       action: PayloadAction<ChannelMessagesIdsResponse>,
     ) => {
       const channelAddress = action.payload.channelAddress;
-      state.channelMessages[channelAddress].ids = action.payload.ids;
+      if (channelAddress in state.channelMessages) {
+        state.channelMessages[channelAddress].ids = action.payload.ids;
+      } else {
+        state.channelMessages[channelAddress] = {
+          ids: action.payload.ids,
+          messages: {},
+        };
+      }
     },
     askForMessages: (state, _action: PayloadAction<AskForMessagesPayload>) =>
       state,
