@@ -104,8 +104,6 @@ describe('Chat component', () => {
           getItemCount={[Function]}
           horizontal={false}
           initialNumToRender={10}
-          invertStickyHeaders={true}
-          inverted={true}
           keyExtractor={[Function]}
           maxToRenderPerBatch={10}
           onContentSizeChange={[Function]}
@@ -123,19 +121,10 @@ describe('Chat component', () => {
           scrollEventThrottle={50}
           stickyHeaderIndices={Array []}
           style={
-            Array [
-              Object {
-                "transform": Array [
-                  Object {
-                    "scaleY": -1,
-                  },
-                ],
-              },
-              Object {
-                "paddingLeft": 20,
-                "paddingRight": 20,
-              },
-            ]
+            Object {
+              "paddingLeft": 20,
+              "paddingRight": 20,
+            }
           }
           updateCellsBatchingPeriod={50}
           viewabilityConfigCallbackPairs={Array []}
@@ -144,20 +133,7 @@ describe('Chat component', () => {
           <View>
             <View
               onLayout={[Function]}
-              style={
-                Array [
-                  Object {
-                    "flexDirection": "column-reverse",
-                  },
-                  Object {
-                    "transform": Array [
-                      Object {
-                        "scaleY": -1,
-                      },
-                    ],
-                  },
-                ]
-              }
+              style={null}
             >
               <View
                 onLayout={[Function]}
@@ -312,20 +288,7 @@ describe('Chat component', () => {
             </View>
             <View
               onLayout={[Function]}
-              style={
-                Array [
-                  Object {
-                    "flexDirection": "column-reverse",
-                  },
-                  Object {
-                    "transform": Array [
-                      Object {
-                        "scaleY": -1,
-                      },
-                    ],
-                  },
-                ]
-              }
+              style={null}
             >
               <View
                 onLayout={[Function]}
@@ -480,20 +443,7 @@ describe('Chat component', () => {
             </View>
             <View
               onLayout={[Function]}
-              style={
-                Array [
-                  Object {
-                    "flexDirection": "column-reverse",
-                  },
-                  Object {
-                    "transform": Array [
-                      Object {
-                        "scaleY": -1,
-                      },
-                    ],
-                  },
-                ]
-              }
+              style={null}
             >
               <View
                 onLayout={[Function]}
@@ -648,20 +598,7 @@ describe('Chat component', () => {
             </View>
             <View
               onLayout={[Function]}
-              style={
-                Array [
-                  Object {
-                    "flexDirection": "column-reverse",
-                  },
-                  Object {
-                    "transform": Array [
-                      Object {
-                        "scaleY": -1,
-                      },
-                    ],
-                  },
-                ]
-              }
+              style={null}
             >
               <View
                 onLayout={[Function]}
