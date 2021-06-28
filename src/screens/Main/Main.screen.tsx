@@ -16,6 +16,7 @@ export const MainScreen: FC = () => {
 
   useEffect(() => {
     if (ZbayChannel !== undefined) {
+      dispatch(publicChannelsActions.setCurrentChannel(ZbayChannel.address));
       dispatch(publicChannelsActions.subscribeForTopic(ZbayChannel));
     }
   }, [dispatch, ZbayChannel]);

@@ -2,10 +2,7 @@ import { Config } from 'react-native-config';
 import { StoreKeys } from '../store.keys';
 import { createSelector } from 'reselect';
 import { selectReducer } from '../store.utils';
-import {
-  publicChannelMessagesIdsAdapter,
-  publicChannelsAdapter,
-} from './publicChannels.adapter';
+import { publicChannelsAdapter } from './publicChannels.adapter';
 import { formatMessageDisplayDate } from '../../utils/functions/formatMessageDisplayDate/formatMessageDisplayDate';
 
 export const publicChannels = createSelector(
@@ -30,48 +27,53 @@ export const ZbayChannel = createSelector(
   },
 );
 
-export const currentChannelMessagesIds = createSelector(
+export const currentChannel = createSelector(
   selectReducer(StoreKeys.PublicChannels),
   reducerState => {
-    return publicChannelMessagesIdsAdapter
-      .getSelectors()
-      .selectAll(reducerState.currentChannelMessagesIds);
+    return reducerState.currentChannel;
+  },
+);
+
+export const channelMessages = createSelector(
+  selectReducer(StoreKeys.PublicChannels),
+  reducerState => {
+    return reducerState.channelMessages;
+  },
+);
+
+export const currentChannelMessagesIds = createSelector(
+  currentChannel,
+  channelMessages,
+  (address, messages) => {
+    return messages[address].ids;
   },
 );
 
 export const currentChannelMessages = createSelector(
-  selectReducer(StoreKeys.PublicChannels),
-  reducerState => reducerState.currentChannelMessages,
+  currentChannel,
+  channelMessages,
+  (address, messages) => {
+    return messages[address].messages;
+  },
 );
 
 export const missingCurrentChannelMessages = createSelector(
   currentChannelMessagesIds,
   currentChannelMessages,
   (ids, messages) => {
-    let missing: string[] = [];
-    ids.forEach(id => {
-      if (!(id in messages)) {
-        missing.push(id);
-      }
-    });
-    return missing;
+    return ids.filter(id => !(id in messages));
   },
 );
 
 export const currentChannelDisplayableMessages = createSelector(
   currentChannelMessages,
-  messages => {
-    let displayable = [];
-    for (const [id, message] of Object.entries(messages)) {
-      displayable.push({
-        id: id,
-        message: message.message,
-        nickname: 'anon',
-        datetime: formatMessageDisplayDate(message.createdAt),
-      });
-    }
-    return displayable;
-  },
+  messages =>
+    Object.entries(messages).map(([id, message]) => ({
+      id: id,
+      message: message.message,
+      nickname: 'anon',
+      datetime: formatMessageDisplayDate(message.createdAt),
+    })),
 );
 
 export const publicChannelsSelectors = {

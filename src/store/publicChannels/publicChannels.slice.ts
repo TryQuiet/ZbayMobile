@@ -2,28 +2,29 @@ import { createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
 
 import { StoreKeys } from '../store.keys';
 
-import {
-  publicChannelMessagesIdsAdapter,
-  publicChannelsAdapter,
-} from './publicChannels.adapter';
+import { publicChannelsAdapter } from './publicChannels.adapter';
 import { IChannelInfo, IMessage } from './publicChannels.types';
 
 export class PublicChannelsState {
   public channels: EntityState<IChannelInfo> =
     publicChannelsAdapter.getInitialState();
 
-  public currentChannelMessagesIds: EntityState<string> =
-    publicChannelMessagesIdsAdapter.getInitialState();
+  public currentChannel: string = '';
 
-  public currentChannelMessages: ChannelMessages = {};
+  public channelMessages: ChannelMessages = {};
+}
+
+export interface ChannelMessages {
+  [channelAddres: string]: {
+    ids: string[];
+    messages: {
+      [id: string]: IMessage;
+    };
+  };
 }
 
 export interface GetPublicChannelsResponse {
   [name: string]: IChannelInfo;
-}
-
-export interface ChannelMessages {
-  [id: string]: IMessage;
 }
 
 export interface ChannelMessagesIdsResponse {
@@ -55,15 +56,16 @@ export const publicChannelsSlice = createSlice({
         Object.values(action.payload),
       );
     },
+    setCurrentChannel: (state, action: PayloadAction<string>) => {
+      state.currentChannel = action.payload;
+    },
     subscribeForTopic: (state, _action: PayloadAction<IChannelInfo>) => state,
     responseSendIds: (
       state,
       action: PayloadAction<ChannelMessagesIdsResponse>,
     ) => {
-      publicChannelMessagesIdsAdapter.setAll(
-        state.currentChannelMessagesIds,
-        Object.values(action.payload),
-      );
+      const channelAddress = action.payload.channelAddress;
+      state.channelMessages[channelAddress].ids = action.payload.ids;
     },
     askForMessages: (state, _action: PayloadAction<AskForMessagesPayload>) =>
       state,
@@ -71,8 +73,9 @@ export const publicChannelsSlice = createSlice({
       state,
       action: PayloadAction<AskForMessagesResponse>,
     ) => {
+      const channelAddress = action.payload.channelAddress;
       action.payload.messages.forEach(message => {
-        state.currentChannelMessages[message.id] = message;
+        state.channelMessages[channelAddress].messages[message.id] = message;
       });
     },
   },

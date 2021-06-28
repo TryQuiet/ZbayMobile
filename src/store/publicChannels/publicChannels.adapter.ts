@@ -4,5 +4,3 @@ import { IChannelInfo } from './publicChannels.types';
 export const publicChannelsAdapter = createEntityAdapter<IChannelInfo>({
   selectId: channel => channel.name,
 });
-
-export const publicChannelMessagesIdsAdapter = createEntityAdapter<string>();
