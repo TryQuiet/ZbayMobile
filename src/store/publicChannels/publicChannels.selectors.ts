@@ -45,7 +45,11 @@ export const currentChannelMessagesIds = createSelector(
   currentChannel,
   channelMessages,
   (address, messages) => {
-    return messages[address].ids;
+    if (messages && address in messages) {
+      return messages[address].ids;
+    } else {
+      return [];
+    }
   },
 );
 
@@ -53,7 +57,11 @@ export const currentChannelMessages = createSelector(
   currentChannel,
   channelMessages,
   (address, messages) => {
-    return messages[address].messages;
+    if (messages && address in messages) {
+      return messages[address].messages;
+    } else {
+      return [];
+    }
   },
 );
 
@@ -79,6 +87,8 @@ export const currentChannelDisplayableMessages = createSelector(
 export const publicChannelsSelectors = {
   publicChannels,
   ZbayChannel,
+  currentChannel,
+  channelMessages,
   currentChannelMessagesIds,
   currentChannelMessages,
   missingCurrentChannelMessages,

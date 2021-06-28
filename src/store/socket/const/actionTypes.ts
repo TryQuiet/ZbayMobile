@@ -16,7 +16,7 @@ export enum SocketActionTypes {
   CONNECT_TO_WEBSOCKET_SERVER = 'connectToWebsocketServer',
   GET_PUBLIC_CHANNELS = 'getPublicChannels',
   RESPONSE_GET_PUBLIC_CHANNELS = 'responseGetPublicChannels',
-  SEND_IDS = 'sendIds',
+  SEND_MESSAGES_IDS = 'sendIds',
   ASK_FOR_MESSAGES = 'askForMessages',
   RESPONSE_ASK_FOR_MESSAGES = 'responseFetchAllMessages',
   SUBSCRIBE_FOR_TOPIC = 'subscribeForTopic',

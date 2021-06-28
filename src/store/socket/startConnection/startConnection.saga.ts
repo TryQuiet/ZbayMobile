@@ -59,7 +59,7 @@ export function* handleActions(socket: Socket): Generator {
 export function subscribe(socket: Socket) {
   return eventChannel<
     | ReturnType<typeof publicChannelsActions.responseGetPublicChannels>
-    | ReturnType<typeof publicChannelsActions.responseSendIds>
+    | ReturnType<typeof publicChannelsActions.responseSendMessagesIds>
     | ReturnType<typeof publicChannelsActions.responseAskForMessages>
   >(emit => {
     socket.on(
@@ -69,9 +69,9 @@ export function subscribe(socket: Socket) {
       },
     );
     socket.on(
-      SocketActionTypes.SEND_IDS,
+      SocketActionTypes.SEND_MESSAGES_IDS,
       (payload: ChannelMessagesIdsResponse) => {
-        emit(publicChannelsActions.responseSendIds(payload));
+        emit(publicChannelsActions.responseSendMessagesIds(payload));
       },
     );
     socket.on(

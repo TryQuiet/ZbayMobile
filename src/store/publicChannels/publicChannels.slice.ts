@@ -1,3 +1,4 @@
+import Config from 'react-native-config';
 import { createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
 
 import { StoreKeys } from '../store.keys';
@@ -9,7 +10,7 @@ export class PublicChannelsState {
   public channels: EntityState<IChannelInfo> =
     publicChannelsAdapter.getInitialState();
 
-  public currentChannel: string = '';
+  public currentChannel: string = Config.PUBLIC_CHANNEL_ADDRESS;
 
   public channelMessages: ChannelMessages = {};
 }
@@ -60,7 +61,7 @@ export const publicChannelsSlice = createSlice({
       state.currentChannel = action.payload;
     },
     subscribeForTopic: (state, _action: PayloadAction<IChannelInfo>) => state,
-    responseSendIds: (
+    responseSendMessagesIds: (
       state,
       action: PayloadAction<ChannelMessagesIdsResponse>,
     ) => {
