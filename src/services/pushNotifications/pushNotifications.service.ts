@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import PushNotification from 'react-native-push-notification';
 import { Socket, io } from 'socket.io-client';
 import { SocketActionTypes } from '../../store/socket/const/actionTypes';
@@ -26,6 +26,9 @@ export const createLocalNotification = (message: IMessage) => {
 
 export const useNotifications = (): void => {
   useEffect(() => {
+    if (Platform.OS === 'android') {
+      return;
+    }
     PushNotification.createChannel(
       {
         channelName: 'Incoming messages',
