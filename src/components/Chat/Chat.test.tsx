@@ -104,6 +104,8 @@ describe('Chat component', () => {
           getItemCount={[Function]}
           horizontal={false}
           initialNumToRender={10}
+          invertStickyHeaders={true}
+          inverted={true}
           keyExtractor={[Function]}
           maxToRenderPerBatch={10}
           onContentSizeChange={[Function]}
@@ -121,10 +123,19 @@ describe('Chat component', () => {
           scrollEventThrottle={50}
           stickyHeaderIndices={Array []}
           style={
-            Object {
-              "paddingLeft": 20,
-              "paddingRight": 20,
-            }
+            Array [
+              Object {
+                "transform": Array [
+                  Object {
+                    "scaleY": -1,
+                  },
+                ],
+              },
+              Object {
+                "paddingLeft": 20,
+                "paddingRight": 20,
+              },
+            ]
           }
           updateCellsBatchingPeriod={50}
           viewabilityConfigCallbackPairs={Array []}
@@ -133,7 +144,20 @@ describe('Chat component', () => {
           <View>
             <View
               onLayout={[Function]}
-              style={null}
+              style={
+                Array [
+                  Object {
+                    "flexDirection": "column-reverse",
+                  },
+                  Object {
+                    "transform": Array [
+                      Object {
+                        "scaleY": -1,
+                      },
+                    ],
+                  },
+                ]
+              }
             >
               <View
                 onLayout={[Function]}
@@ -288,7 +312,20 @@ describe('Chat component', () => {
             </View>
             <View
               onLayout={[Function]}
-              style={null}
+              style={
+                Array [
+                  Object {
+                    "flexDirection": "column-reverse",
+                  },
+                  Object {
+                    "transform": Array [
+                      Object {
+                        "scaleY": -1,
+                      },
+                    ],
+                  },
+                ]
+              }
             >
               <View
                 onLayout={[Function]}
@@ -443,7 +480,20 @@ describe('Chat component', () => {
             </View>
             <View
               onLayout={[Function]}
-              style={null}
+              style={
+                Array [
+                  Object {
+                    "flexDirection": "column-reverse",
+                  },
+                  Object {
+                    "transform": Array [
+                      Object {
+                        "scaleY": -1,
+                      },
+                    ],
+                  },
+                ]
+              }
             >
               <View
                 onLayout={[Function]}
@@ -598,7 +648,20 @@ describe('Chat component', () => {
             </View>
             <View
               onLayout={[Function]}
-              style={null}
+              style={
+                Array [
+                  Object {
+                    "flexDirection": "column-reverse",
+                  },
+                  Object {
+                    "transform": Array [
+                      Object {
+                        "scaleY": -1,
+                      },
+                    ],
+                  },
+                ]
+              }
             >
               <View
                 onLayout={[Function]}
@@ -762,52 +825,53 @@ describe('Chat component', () => {
             }
           }
         >
-          <View
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            style={
-              Array [
-                Object {
-                  "borderColor": "#B3B3B3",
-                  "borderRadius": 4,
-                  "borderWidth": 1,
-                  "flexGrow": 1,
-                  "maxHeight": 72,
-                  "minHeight": 42,
-                  "paddingLeft": 15,
-                  "paddingRight": 15,
-                },
-                Object {},
-              ]
-            }
-          >
-            <TextInput
-              allowFontScaling={true}
-              multiline={true}
-              onChangeText={[Function]}
-              placeholder="Message #Zbay as @holmes"
-              rejectResponderTermination={true}
+          <View>
+            <View
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 Array [
                   Object {
-                    "paddingBottom": 8,
-                    "paddingTop": 8,
-                    "textAlignVertical": "center",
+                    "borderColor": "#B3B3B3",
+                    "borderRadius": 4,
+                    "borderWidth": 1,
+                    "flexGrow": 1,
+                    "maxHeight": 72,
+                    "minHeight": 42,
+                    "paddingLeft": 15,
+                    "paddingRight": 15,
                   },
+                  Object {},
                 ]
               }
-              underlineColorAndroid="transparent"
-            />
+            >
+              <TextInput
+                allowFontScaling={true}
+                onChangeText={[Function]}
+                placeholder="Message #Zbay as @holmes"
+                rejectResponderTermination={true}
+                style={
+                  Array [
+                    Object {
+                      "paddingBottom": 8,
+                      "paddingTop": 8,
+                      "textAlignVertical": "center",
+                    },
+                  ]
+                }
+                underlineColorAndroid="transparent"
+              />
+            </View>
           </View>
         </View>
       </View>
