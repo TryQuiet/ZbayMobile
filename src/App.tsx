@@ -1,3 +1,4 @@
+import WebviewCrypto from 'react-native-webview-crypto';
 import { ErrorScreen } from './screens/Error/Error.screen';
 import { MainScreen } from './screens/Main/Main.screen';
 import React from 'react';
@@ -33,6 +34,7 @@ export default function App(): JSX.Element {
           dispatch(initActions.setNavigatorReady(true));
           dispatch(initActions.doOnRestore());
         }}>
+        <WebviewCrypto />
         <ThemeProvider theme={defaultTheme}>
           <StatusBar backgroundColor={defaultTheme.palette.statusBar.main} />
           <Navigator

@@ -7,6 +7,7 @@ import { InitCheckKeys } from './initCheck.keys';
 
 export class InitState {
   public isNavigatorReady: boolean = false;
+  public isCryptoEngineInitialized: boolean = false;
   public isRestored: boolean = false;
   public initChecks: EntityState<InitCheck> = initChecksAdapter.setAll(
     initChecksAdapter.getInitialState(),
@@ -41,6 +42,9 @@ export const initSlice = createSlice({
   reducers: {
     setNavigatorReady: (state, action: PayloadAction<boolean>) => {
       state.isNavigatorReady = action.payload;
+    },
+    setCryptoEngineInitialized: (state, action: PayloadAction<boolean>) => {
+      state.isCryptoEngineInitialized = action.payload;
     },
     setIsRestored: (state, action: PayloadAction<boolean>) => {
       state.isRestored = action.payload;
