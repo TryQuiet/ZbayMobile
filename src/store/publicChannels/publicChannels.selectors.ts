@@ -4,7 +4,6 @@ import { createSelector } from 'reselect';
 import { selectReducer } from '../store.utils';
 import { publicChannelsAdapter } from './publicChannels.adapter';
 import { formatMessageDisplayDate } from '../../utils/functions/formatMessageDisplayDate/formatMessageDisplayDate';
-import { IMessage } from './publicChannels.types';
 
 export const publicChannels = createSelector(
   selectReducer(StoreKeys.PublicChannels),
@@ -42,14 +41,14 @@ export const channelMessages = createSelector(
   },
 );
 
-export const currentChannelMessagesIds = createSelector(
+export const currentChannelMessagesKeys = createSelector(
   currentChannel,
   channelMessages,
   (address, messages) => {
     if (messages && address in messages) {
       return messages[address].ids;
     } else {
-      return [];
+      return <string[]>[];
     }
   },
 );
@@ -59,20 +58,27 @@ export const currentChannelMessages = createSelector(
   channelMessages,
   (address, messages) => {
     if (messages && address in messages) {
-      const data = Object.entries(messages[address].messages).map(
-        ([_id, message]) => message,
-      );
-      return data.sort((a: IMessage, b: IMessage) => {
-        return b.createdAt - a.createdAt;
-      });
+      return messages[address].messages;
     } else {
-      return [];
+      return {};
     }
   },
 );
 
+export const orderedChannelMessages = createSelector(
+  currentChannelMessagesKeys,
+  currentChannelMessages,
+  (keys, messages) => {
+    return keys
+      .filter(key => key in messages)
+      .map(key => {
+        return messages[key];
+      });
+  },
+);
+
 export const missingCurrentChannelMessages = createSelector(
-  currentChannelMessagesIds,
+  currentChannelMessagesKeys,
   currentChannelMessages,
   (ids, messages) => {
     return ids.filter(id => !(id in messages));
@@ -80,7 +86,7 @@ export const missingCurrentChannelMessages = createSelector(
 );
 
 export const currentChannelDisplayableMessages = createSelector(
-  currentChannelMessages,
+  orderedChannelMessages,
   messages =>
     messages.map(message => {
       return {
@@ -97,8 +103,8 @@ export const publicChannelsSelectors = {
   ZbayChannel,
   currentChannel,
   channelMessages,
-  currentChannelMessagesIds,
   currentChannelMessages,
+  orderedChannelMessages,
   missingCurrentChannelMessages,
   currentChannelDisplayableMessages,
 };
