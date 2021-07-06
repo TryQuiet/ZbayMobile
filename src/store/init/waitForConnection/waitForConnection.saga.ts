@@ -23,19 +23,6 @@ export function* waitForConnectionSaga(): Generator {
     yield* put(initActions.setIsRestored(true));
     yield* call(replaceScreen, ScreenNames.MainScreen);
   } else {
-    /* Lines below are present only to proove that csr is generating properly.
-        In next commit, it will be changed to redirection to registration screen. */
-    const zbayNickname = yield* call(getRandomName);
-    const commonName = yield* select(identitySelectors.commonName);
-    const payload = {
-      zbayNickname: zbayNickname,
-      commonName: commonName,
-      peerId: peerId,
-    };
-    yield* put(identityActions.createUserCsr(payload));
+    yield* call(replaceScreen, ScreenNames.RegistrationScreen);
   }
 }
-
-export const getRandomName = (): string => {
-  return Math.random().toString(36).substring(7);
-};
