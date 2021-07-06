@@ -1,3 +1,3 @@
 export interface RegistrationProps {
-  registerUsernameAction: () => void;
+  registerUsernameAction: (username: string) => void;
 }

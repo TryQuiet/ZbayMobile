@@ -9,6 +9,7 @@ storiesOf('Input', module)
     <Input
       label={'Choose your favorite username'}
       placeholder={'Enter a username'}
+      validation={undefined}
     />
   ))
   .add('Validation', () => (
