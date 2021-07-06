@@ -1,3 +1,4 @@
+import { RegistrationScreen } from './screens/Registration/Registration.screen';
 import WebviewCrypto from 'react-native-webview-crypto';
 import { ErrorScreen } from './screens/Error/Error.screen';
 import { MainScreen } from './screens/Main/Main.screen';
@@ -43,6 +44,10 @@ export default function App(): JSX.Element {
               headerShown: false,
             }}>
             <Screen component={SplashScreen} name={ScreenNames.SplashScreen} />
+            <Screen
+              component={RegistrationScreen}
+              name={ScreenNames.RegistrationScreen}
+            />
             <Screen component={MainScreen} name={ScreenNames.MainScreen} />
             <Screen component={ErrorScreen} name={ScreenNames.ErrorScreen} />
           </Navigator>
