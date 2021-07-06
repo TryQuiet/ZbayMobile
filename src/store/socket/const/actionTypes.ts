@@ -21,4 +21,5 @@ export enum SocketActionTypes {
   ASK_FOR_MESSAGES = 'askForMessages',
   RESPONSE_ASK_FOR_MESSAGES = 'responseFetchAllMessages',
   SUBSCRIBE_FOR_TOPIC = 'subscribeForTopic',
+  SEND_MESSAGE = 'sendMessage',
 }
