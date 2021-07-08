@@ -1,4 +1,3 @@
-import { PayloadAction } from '@reduxjs/toolkit';
 import { call, select, put } from 'typed-redux-saga';
 import { identityActions, UserCsr } from '../identity.slice';
 import { createUserCsr } from '@zbayapp/identity';
@@ -6,6 +5,7 @@ import { initSelectors } from '../../init/init.selectors';
 import { initActions } from '../../init/init.slice';
 import CryptoEngine from 'pkijs/src/CryptoEngine';
 import { setEngine } from 'pkijs/src/common';
+import { PayloadAction } from '@reduxjs/toolkit';
 
 declare global {
   interface Crypto {
@@ -36,7 +36,7 @@ export function* createUserCsrSaga(
     return;
   }
 
-  console.log(`generated csr: ${csr.pkcs10}`);
+  yield* put(identityActions.storeUserCsr(csr));
 }
 
 export const initCryptoEngine = () => {

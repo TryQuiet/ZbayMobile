@@ -1,11 +1,16 @@
 import React from 'react';
 
 import { renderComponent } from '../../utils/functions/renderComponent/renderComponent';
+import { storybookLog } from '../../utils/functions/storybookLog/storybookLog.function';
 import { Registration } from './Registration.component';
 
 describe('Registration component', () => {
   it('should match inline snapshot', () => {
-    const { toJSON } = renderComponent(<Registration />);
+    const { toJSON } = renderComponent(
+      <Registration
+        registerUsernameAction={storybookLog('registered username')}
+      />,
+    );
 
     expect(toJSON()).toMatchInlineSnapshot(`
       <View
@@ -95,6 +100,7 @@ describe('Registration component', () => {
           >
             <TextInput
               allowFontScaling={true}
+              onChangeText={[Function]}
               placeholder="Enter a username"
               rejectResponderTermination={true}
               style={

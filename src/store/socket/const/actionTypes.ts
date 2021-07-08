@@ -21,4 +21,8 @@ export enum SocketActionTypes {
   ASK_FOR_MESSAGES = 'askForMessages',
   RESPONSE_ASK_FOR_MESSAGES = 'responseFetchAllMessages',
   SUBSCRIBE_FOR_TOPIC = 'subscribeForTopic',
+  REGISTER_USER_CERTIFICATE = 'registerUserCertificate',
+  SEND_USER_CERTIFICATE = 'sendUserCertificate',
+  CERTIFICATE_REGISTRATION_ERROR = 'certificateRegistrationError',
+  SAVE_CERTIFICATE = 'saveCertificate',
 }

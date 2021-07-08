@@ -9,6 +9,7 @@ export class IdentityState {
   public commonName: string = '';
   public peerId: string = '';
   public userCsr: UserCsr | null = null;
+  public userCertificate: string | null = null;
 }
 
 export interface UserCsr {
@@ -40,13 +41,19 @@ export const identitySlice = createSlice({
     storePeerId: (state, action: PayloadAction<string>) => {
       state.peerId = action.payload;
     },
-    createUserCsr: (state, action: PayloadAction<CreateUserCsrPayload>) => {
+    registerUsername: (state, action: PayloadAction<string>) => {
       // Store nickname in this step as it won't be returned by waggle after being saved to db
-      state.zbayNickname = action.payload.zbayNickname;
+      state.zbayNickname = action.payload;
     },
+    createUserCsr: (state, _action: PayloadAction<CreateUserCsrPayload>) =>
+      state,
     storeUserCsr: (state, action: PayloadAction<UserCsr>) => {
       state.userCsr = action.payload;
     },
+    storeUserCertificate: (state, action: PayloadAction<string>) => {
+      state.userCertificate = action.payload;
+    },
+    throwIdentityError: (state, _action: PayloadAction<string>) => state,
   },
 });
 

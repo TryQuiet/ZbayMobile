@@ -18,7 +18,7 @@ export function* waitForConnectionSaga(): Generator {
     yield* delay(500);
   }
 
-  const userCsr = yield* select(identitySelectors.userCsr);
+  const userCsr = yield* select(identitySelectors.userCertificate);
   if (userCsr !== null) {
     yield* put(initActions.setIsRestored(true));
     yield* call(replaceScreen, ScreenNames.MainScreen);
