@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import { useState } from 'react';
-import { KeyboardAvoidingView } from 'react-native';
+import { Keyboard, KeyboardAvoidingView } from 'react-native';
 import { Button } from '../Button/Button.component';
 import { Input } from '../Input/Input.component';
 import { Typography } from '../Typography/Typography.component';
@@ -19,6 +19,7 @@ export const Registration: FC<RegistrationProps> = ({
   };
 
   const onPress = () => {
+    Keyboard.dismiss();
     if (usernameInput === undefined || usernameInput?.length === 0) {
       setInputError('Username can not be empty');
       return;

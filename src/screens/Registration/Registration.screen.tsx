@@ -1,10 +1,14 @@
 import React, { FC } from 'react';
-import { Text, View } from 'react-native';
+import { useDispatch } from 'react-redux';
+import { Registration } from '../../components/Registration/Registration.component';
+import { identityActions } from '../../store/identity/identity.slice';
 
 export const RegistrationScreen: FC = () => {
-  return (
-    <View>
-      <Text>{'RegistrationScreen'}</Text>
-    </View>
-  );
+  const dispatch = useDispatch();
+
+  const registerUsername = (name: string) => {
+    dispatch(identityActions.registerUsername(name));
+  };
+
+  return <Registration registerUsernameAction={registerUsername} />;
 };
