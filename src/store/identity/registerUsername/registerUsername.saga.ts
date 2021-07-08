@@ -1,11 +1,9 @@
 import { PayloadAction } from '@reduxjs/toolkit';
-import { Socket } from 'socket.io-client';
 import { select, put } from 'typed-redux-saga';
 import { identitySelectors } from '../identity.selectors';
 import { identityActions } from '../identity.slice';
 
 export function* registerUsernameSaga(
-  socket: Socket,
   action: PayloadAction<
     ReturnType<typeof identityActions.registerUsername>['payload']
   >,

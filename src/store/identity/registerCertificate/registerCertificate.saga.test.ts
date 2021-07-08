@@ -13,7 +13,11 @@ import { registerCertificateSaga } from './registerCertificate.saga';
 describe('registerCertificateSaga', () => {
   test('send certificate request to waggle', () => {
     const socket = { emit: jest.fn(), on: jest.fn() } as unknown as Socket;
-    const userCsr = jest.fn() as unknown as UserCsr;
+    const userCsr = {
+      userCsr: 'userCsr',
+      userKey: 'userKey',
+      pkcs10: jest.fn(),
+    };
     expectSaga(
       registerCertificateSaga,
       socket,
@@ -26,7 +30,7 @@ describe('registerCertificateSaga', () => {
       })
       .apply(socket, socket.emit, [
         SocketActionTypes.REGISTER_USER_CERTIFICATE,
-        userCsr,
+        userCsr.userCsr,
       ])
       .run();
   });
