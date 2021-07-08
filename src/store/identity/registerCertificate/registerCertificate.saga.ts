@@ -13,7 +13,8 @@ export function* registerCertificateSaga(
 ): Generator {
   yield* fork(handleCertificateActions, socket);
   yield* apply(socket, socket.emit, [
-    SocketActionTypes.CERTIFICATE_REGISTRATION_ERROR,
+    SocketActionTypes.REGISTER_USER_CERTIFICATE,
+    'http://wzispgrbrrkt3bari4kljpqz2j6ozzu3vlsoi2wqupgu7ewi4ncibrid.onion:7789',
     action.payload,
   ]);
 }

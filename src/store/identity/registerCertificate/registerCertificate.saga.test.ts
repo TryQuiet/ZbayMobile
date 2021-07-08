@@ -25,7 +25,7 @@ describe('registerCertificateSaga', () => {
         },
       })
       .apply(socket, socket.emit, [
-        SocketActionTypes.CERTIFICATE_REGISTRATION_ERROR,
+        SocketActionTypes.REGISTER_USER_CERTIFICATE,
         userCsr,
       ])
       .run();
