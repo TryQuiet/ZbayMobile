@@ -7,6 +7,12 @@ export type RootStackParamList = {
   [ScreenNames.RegistrationScreen]: {
     error: string | undefined;
   };
+  [ScreenNames.SuccessScreen]: {
+    onPress: () => void;
+    icon: any;
+    title: string;
+    message?: string;
+  };
   [ScreenNames.ErrorScreen]: {
     error: string;
   };
@@ -15,6 +21,11 @@ export type RootStackParamList = {
 export type RegistrationRouteProp = RouteProp<
   RootStackParamList,
   ScreenNames.RegistrationScreen
+>;
+
+export type SuccessRouteProp = RouteProp<
+  RootStackParamList,
+  ScreenNames.SuccessScreen
 >;
 
 export type ErrorRouteProp = RouteProp<

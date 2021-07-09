@@ -2,5 +2,5 @@ export interface SuccessProps {
   onPress: () => void;
   icon: any;
   title: string;
-  message?: string;
+  message?: string | undefined;
 }

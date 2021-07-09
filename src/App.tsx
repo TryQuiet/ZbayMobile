@@ -1,3 +1,4 @@
+import { SuccessScreen } from './screens/Success/Success.screen';
 import { RegistrationScreen } from './screens/Registration/Registration.screen';
 import WebviewCrypto from 'react-native-webview-crypto';
 import { ErrorScreen } from './screens/Error/Error.screen';
@@ -49,6 +50,10 @@ export default function App(): JSX.Element {
               name={ScreenNames.RegistrationScreen}
             />
             <Screen component={MainScreen} name={ScreenNames.MainScreen} />
+            <Screen
+              component={SuccessScreen}
+              name={ScreenNames.SuccessScreen}
+            />
             <Screen component={ErrorScreen} name={ScreenNames.ErrorScreen} />
           </Navigator>
         </ThemeProvider>
