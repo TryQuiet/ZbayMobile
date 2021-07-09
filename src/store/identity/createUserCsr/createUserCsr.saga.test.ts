@@ -16,6 +16,15 @@ import { KeyObject } from 'crypto';
 import { initReducer, InitState } from '../../init/init.slice';
 
 describe('createUserCsrSaga', () => {
+  const userCsr = {
+    userCsr: 'userCsr',
+    userKey: 'userKey',
+    pkcs10: {
+      publicKey: jest.fn() as unknown as KeyObject,
+      privateKey: jest.fn() as unknown as KeyObject,
+      pkcs10: 'pkcs10',
+    },
+  };
   test('create csr', async () => {
     await expectSaga(
       createUserCsrSaga,
@@ -36,20 +45,7 @@ describe('createUserCsrSaga', () => {
           },
         },
       )
-      .provide([
-        [
-          call.fn(createUserCsr),
-          {
-            userCsr: 'userCsr',
-            userKey: 'userKey',
-            pkcs10: {
-              publicKey: jest.fn() as unknown as KeyObject,
-              privateKey: jest.fn() as unknown as KeyObject,
-              pkcs10: 'pkcs10',
-            },
-          },
-        ],
-      ])
+      .provide([[call.fn(createUserCsr), userCsr]])
       .hasFinalState({
         [StoreKeys.Init]: {
           ...new InitState(),
@@ -57,6 +53,7 @@ describe('createUserCsrSaga', () => {
         },
         [StoreKeys.Identity]: {
           ...new IdentityState(),
+          userCsr: userCsr,
         },
       })
       .run();
@@ -82,18 +79,7 @@ describe('createUserCsrSaga', () => {
       )
       .provide([
         [call.fn(initCryptoEngine), null],
-        [
-          call.fn(createUserCsr),
-          {
-            userCsr: 'userCsr',
-            userKey: 'userKey',
-            pkcs10: {
-              publicKey: jest.fn() as unknown as KeyObject,
-              privateKey: jest.fn() as unknown as KeyObject,
-              pkcs10: 'pkcs10',
-            },
-          },
-        ],
+        [call.fn(createUserCsr), userCsr],
       ])
       .hasFinalState({
         [StoreKeys.Init]: {
@@ -102,6 +88,7 @@ describe('createUserCsrSaga', () => {
         },
         [StoreKeys.Identity]: {
           ...new IdentityState(),
+          userCsr: userCsr,
         },
       })
       .run();

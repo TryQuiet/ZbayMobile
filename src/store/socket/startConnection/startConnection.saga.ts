@@ -17,6 +17,7 @@ import { initActions } from '../../init/init.slice';
 import { InitCheckKeys } from '../../init/initCheck.keys';
 import { identityActions } from '../../identity/identity.slice';
 import { waitForConnectionSaga } from '../../init/waitForConnection/waitForConnection.saga';
+import { identityMasterSaga } from '../../identity/identity.master.saga';
 import { messagesMasterSaga } from '../../messages/messages.master.saga';
 
 export function* startConnectionSaga(): Generator {
@@ -55,6 +56,7 @@ export function* useIO(socket: Socket): Generator {
     fork(handleActions, socket),
     fork(publicChannelsMasterSaga, socket),
     fork(messagesMasterSaga, socket),
+    fork(identityMasterSaga, socket),
   ]);
 }
 
