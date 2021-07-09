@@ -1,5 +1,6 @@
 import { Socket } from 'socket.io-client';
 import { all, call, takeEvery } from 'typed-redux-saga';
+import { appImages } from '../../../assets';
 import { ScreenNames } from '../../const/ScreenNames.enum';
 import { replaceScreen } from '../../utils/functions/replaceScreen/replaceScreen';
 import { createUserCsrSaga } from './createUserCsr/createUserCsr.saga';
@@ -18,7 +19,14 @@ export function* identityMasterSaga(socket: Socket): Generator {
       socket,
     ),
     takeEvery(identityActions.storeUserCertificate.type, function* () {
-      yield* call(replaceScreen, ScreenNames.MainScreen);
+      yield* call(replaceScreen, ScreenNames.SuccessScreen, {
+        onPress: () => {
+          replaceScreen(ScreenNames.MainScreen);
+        },
+        icon: appImages.username_registered,
+        title: 'You created a username',
+        message: 'Your username will be registered shortly',
+      });
     }),
     takeEvery(identityActions.throwIdentityError.type, handleIdentityError),
   ]);
