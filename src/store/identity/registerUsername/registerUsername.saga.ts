@@ -1,5 +1,7 @@
 import { PayloadAction } from '@reduxjs/toolkit';
-import { select, put } from 'typed-redux-saga';
+import { call, select, put } from 'typed-redux-saga';
+import { ScreenNames } from '../../../const/ScreenNames.enum';
+import { navigateTo } from '../../../utils/functions/navigateTo/navigateTo';
 import { identitySelectors } from '../identity.selectors';
 import { identityActions } from '../identity.slice';
 
@@ -8,6 +10,11 @@ export function* registerUsernameSaga(
     ReturnType<typeof identityActions.registerUsername>['payload']
   >,
 ): Generator {
+  // Clear possible remaining errors from previous validation
+  yield* call(navigateTo, ScreenNames.RegistrationScreen, {
+    error: '',
+  });
+
   const commonName = yield* select(identitySelectors.commonName);
   const peerId = yield* select(identitySelectors.peerId);
 

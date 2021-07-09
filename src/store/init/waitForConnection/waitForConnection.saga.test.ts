@@ -34,7 +34,7 @@ describe('waitForConnectionSaga', () => {
       )
       .provide([[call.fn(replaceScreen), null]])
       .put(identityActions.requestPeerId())
-      .call(replaceScreen, ScreenNames.RegistrationScreen)
+      .call(replaceScreen, ScreenNames.RegistrationScreen, {})
       .run();
   });
   test('go to main screen', async () => {
@@ -56,7 +56,6 @@ describe('waitForConnectionSaga', () => {
       )
       .provide([[call.fn(replaceScreen), null]])
       .put(identityActions.requestPeerId())
-      .put(initActions.setIsRestored(true))
       .call(replaceScreen, ScreenNames.MainScreen)
       .run();
   });

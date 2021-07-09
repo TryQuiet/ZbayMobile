@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect } from 'react';
 import { useState } from 'react';
 import { Keyboard, KeyboardAvoidingView } from 'react-native';
 import { Button } from '../Button/Button.component';
@@ -9,9 +9,18 @@ import { RegistrationProps } from './Registration.types';
 
 export const Registration: FC<RegistrationProps> = ({
   registerUsernameAction,
+  registerUsernameError,
 }) => {
   const [usernameInput, setUsernameInput] = useState<string | undefined>();
   const [inputError, setInputError] = useState<string | undefined>();
+  const [loading, setLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (registerUsernameError) {
+      setLoading(false);
+      setInputError(registerUsernameError);
+    }
+  }, [registerUsernameError]);
 
   const onChangeText = (value: string) => {
     setInputError(undefined);
@@ -20,7 +29,9 @@ export const Registration: FC<RegistrationProps> = ({
 
   const onPress = () => {
     Keyboard.dismiss();
+    setLoading(true);
     if (usernameInput === undefined || usernameInput?.length === 0) {
+      setLoading(false);
       setInputError('Username can not be empty');
       return;
     }
@@ -49,9 +60,15 @@ export const Registration: FC<RegistrationProps> = ({
         hint={
           'Your username cannot have any spaces or special characters, must be lowercase letters and numbers only.'
         }
+        disabled={loading}
         validation={inputError}
       />
-      <Button title={'Continue'} onPress={onPress} style={{ marginTop: 30 }} />
+      <Button
+        onPress={onPress}
+        title={'Continue'}
+        loading={loading}
+        style={{ marginTop: 30 }}
+      />
     </KeyboardAvoidingView>
   );
 };

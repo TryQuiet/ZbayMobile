@@ -9,7 +9,7 @@ export function* handleIdentityError(
     ReturnType<typeof identityActions.throwIdentityError>['payload']
   >,
 ): Generator {
-  yield* call(navigateTo, ScreenNames.ErrorScreen, {
+  yield* call(navigateTo, ScreenNames.RegistrationScreen, {
     error: action.payload,
   });
 }
