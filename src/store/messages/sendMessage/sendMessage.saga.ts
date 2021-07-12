@@ -2,7 +2,11 @@ import { DateTime } from 'luxon';
 import { Socket } from 'socket.io-client';
 import { SocketActionTypes } from '../../socket/const/actionTypes';
 import { PayloadAction } from '@reduxjs/toolkit';
-import { sign } from '@zbayapp/identity/lib';
+import {
+  keyFromCertificate,
+  parseCertificate,
+  sign,
+} from '@zbayapp/identity/lib';
 import { call, select, apply } from 'typed-redux-saga';
 import { identitySelectors } from '../../identity/identity.selectors';
 import { publicChannelsSelectors } from '../../publicChannels/publicChannels.selectors';
@@ -21,10 +25,16 @@ export function* sendMessageSaga(
     // Provide error handling
     return;
   }
-  const privateKey = csr.pkcs10.privateKey;
-  const publicKey = csr.pkcs10.publicKey;
 
-  const signature = yield* call(sign, action.payload, privateKey);
+  const certificate = yield* select(identitySelectors.userCertificate);
+  if (!certificate) {
+    // Provide error handling
+    return;
+  }
+
+  const publicKey = yield* call(extractPublicKey, certificate);
+
+  const signature = yield* call(sign, action.payload, csr.pkcs10.privateKey);
 
   const channel = yield* select(publicChannelsSelectors.currentChannel);
 
@@ -46,3 +56,8 @@ export function* sendMessageSaga(
     },
   ]);
 }
+
+export const extractPublicKey = (pem: string) => {
+  const certificate = parseCertificate(pem);
+  return keyFromCertificate(certificate);
+};
