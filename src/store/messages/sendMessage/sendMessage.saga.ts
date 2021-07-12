@@ -1,4 +1,3 @@
-import { DateTime } from 'luxon';
 import { Socket } from 'socket.io-client';
 import { SocketActionTypes } from '../../socket/const/actionTypes';
 import { PayloadAction } from '@reduxjs/toolkit';
@@ -18,6 +17,7 @@ import { ScreenNames } from '../../../const/ScreenNames.enum';
 import { Dispatch } from 'react';
 import { appImages } from '../../../../assets';
 import { replaceScreen } from '../../../utils/functions/replaceScreen/replaceScreen';
+import { generateMessageId, getCurrentTime } from '../utils/message.utils';
 
 export function* sendMessageSaga(
   socket: Socket,
@@ -53,19 +53,29 @@ export function* sendMessageSaga(
     return;
   }
 
-  const publicKey = yield* call(extractPublicKey, certificate);
+  const parsedCertificate = yield* call(parseCertificate, certificate);
+  const pubKey = yield* call(keyFromCertificate, parsedCertificate);
 
-  const signature = yield* call(sign, action.payload, csr.pkcs10.privateKey);
+  const signatureArrayBuffer = yield* call(
+    sign,
+    action.payload,
+    csr.pkcs10.privateKey,
+  );
+  const signature = yield* call(arrayBufferToString, signatureArrayBuffer);
 
   const channel = yield* select(publicChannelsSelectors.currentChannel);
 
+  const messageId = yield* call(generateMessageId);
+
+  const currentTime = yield* call(getCurrentTime);
+
   const message = {
-    id: Math.random().toString(36).substr(2, 9),
+    id: messageId,
     type: MessageTypes.BASIC,
     message: action.payload,
-    createdAt: DateTime.utc().toSeconds(),
-    signature: arrayBufferToString(signature),
-    pubKey: publicKey,
+    createdAt: currentTime,
+    signature: signature,
+    pubKey: pubKey,
     channelId: channel,
   };
 
@@ -77,8 +87,3 @@ export function* sendMessageSaga(
     },
   ]);
 }
-
-export const extractPublicKey = (pem: string) => {
-  const certificate = parseCertificate(pem);
-  return keyFromCertificate(certificate);
-};
