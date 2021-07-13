@@ -1,10 +1,13 @@
+/* eslint-disable prettier/prettier */
 import { createSelector } from '@reduxjs/toolkit';
 import {
+  getCertFieldValue,
   keyFromCertificate,
   loadCertificate,
   parseCertificate,
 } from '@zbayapp/identity/lib';
 import Certificate from 'pkijs/src/Certificate';
+import { CertFieldsTypes } from '@zbayapp/identity/lib/common';
 import { StoreKeys } from '../store.keys';
 import { selectReducer } from '../store.utils';
 import { certificatesAdapter } from './users.adapter';
@@ -37,12 +40,18 @@ export const certificatesMapping = createSelector(
           certificate = loadCertificate(current);
 
           if (certificate.subject.typesAndValues.length === 3) {
-            username =
-              certificate.subject.typesAndValues[0].value.valueBlock.value;
-            onionAddress =
-              certificate.subject.typesAndValues[1].value.valueBlock.value;
-            peerId =
-              certificate.subject.typesAndValues[2].value.valueBlock.value;
+            username = getCertFieldValue(
+              certificate,
+              CertFieldsTypes.nickName
+            );
+            onionAddress = getCertFieldValue(
+              certificate,
+              CertFieldsTypes.commonName,
+            );
+            peerId = getCertFieldValue(
+              certificate,
+              CertFieldsTypes.peerId
+            );
           } else {
             return {};
           }
