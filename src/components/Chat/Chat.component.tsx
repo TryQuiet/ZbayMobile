@@ -85,6 +85,7 @@ export const Chat: FC<ChatProps> = ({
           ref={messageInputRef}
           onChangeText={onInputTextChange}
           placeholder={'Message #' + channel.name + ' as @' + user}
+          multiline={true}
           style={inputStyle}
         />
       </View>
