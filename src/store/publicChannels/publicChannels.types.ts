@@ -22,5 +22,5 @@ export type DisplayableMessage = {
   type: number;
   message: string;
   createdAt: string;
-  nickname?: string;
+  nickname: string;
 };
