@@ -2,11 +2,10 @@ import React, { FC } from 'react';
 import { KeyboardAvoidingView } from 'react-native';
 import { View } from 'react-native';
 import { Typography } from '../Typography/Typography.component';
-import Jdenticon from 'react-native-jdenticon';
 import { MessageProps } from './Message.types';
+import Jdenticon from 'react-native-jdenticon';
 
 export const Message: FC<MessageProps> = ({ message }) => {
-  console.log(message.nickname);
   return (
     <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
       <View
