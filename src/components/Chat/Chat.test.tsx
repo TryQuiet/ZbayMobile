@@ -856,6 +856,7 @@ describe('Chat component', () => {
               <TextInput
                 allowFontScaling={true}
                 editable={true}
+                multiline={true}
                 onChangeText={[Function]}
                 placeholder="Message #Zbay as @holmes"
                 rejectResponderTermination={true}
