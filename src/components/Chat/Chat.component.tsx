@@ -56,9 +56,6 @@ export const Chat: FC<ChatProps> = ({
     ) {
       return;
     }
-    if (!didKeyboardShow) {
-      Keyboard.dismiss();
-    }
     messageInputRef.current.clear();
     sendMessageAction(messageInput);
     setMessageInput('');
