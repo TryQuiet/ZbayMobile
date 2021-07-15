@@ -19,7 +19,10 @@ import { identityActions } from '../../identity/identity.slice';
 import { waitForConnectionSaga } from '../../init/waitForConnection/waitForConnection.saga';
 import { identityMasterSaga } from '../../identity/identity.master.saga';
 import { messagesMasterSaga } from '../../messages/messages.master.saga';
-import { usersActions } from '../../users/users.slice';
+import {
+  SendCertificatesResponse,
+  usersActions,
+} from '../../users/users.slice';
 
 export function* startConnectionSaga(): Generator {
   const socket = yield* call(connect);
@@ -100,7 +103,7 @@ export function subscribe(socket: Socket) {
     );
     socket.on(
       SocketActionTypes.RESPONSE_GET_CERTIFICATES,
-      (payload: string[]) => {
+      (payload: SendCertificatesResponse) => {
         emit(usersActions.responseSendCertificates(payload));
       },
     );

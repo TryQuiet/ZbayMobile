@@ -90,7 +90,11 @@ export const validCurrentChannelMessages = createSelector(
   orderedChannelMessages,
   certificatesMapping,
   (messages, certificates) => {
-    return messages.filter(message => message.pubKey in certificates);
+    return messages
+      .filter(message => message.pubKey in certificates)
+      .sort((a, b) => {
+        return b.createdAt - a.createdAt;
+      });
   },
 );
 

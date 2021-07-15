@@ -1,13 +1,5 @@
-/* eslint-disable prettier/prettier */
 import { createSelector } from '@reduxjs/toolkit';
-import {
-  getCertFieldValue,
-  keyFromCertificate,
-  loadCertificate,
-  parseCertificate,
-} from '@zbayapp/identity/lib';
-import Certificate from 'pkijs/src/Certificate';
-import { CertFieldsTypes } from '@zbayapp/identity/lib/common';
+import { getCertFieldValue, CertFieldsTypes } from '@zbayapp/identity';
 import { StoreKeys } from '../store.keys';
 import { selectReducer } from '../store.utils';
 import { certificatesAdapter } from './users.adapter';
@@ -18,57 +10,30 @@ export const certificates = createSelector(
   reducerState => {
     return certificatesAdapter
       .getSelectors()
-      .selectAll(reducerState.certificates);
+      .selectEntities(reducerState.certificates);
   },
 );
 
 export const certificatesMapping = createSelector(
   certificates,
   certificates => {
-    return certificates.reduce<{ [publicKey: string]: User }>(
-      (accumulator, current) => {
-        let key: string = '';
-        let certificate: Certificate;
+    let mapping: { [pubKey: string]: User } = {};
+    Object.keys(certificates).map(pubKey => {
+      const certificate = certificates[pubKey];
 
-        let username: string = '';
-        let onionAddress: string = '';
-        let peerId: string = '';
+      if (!certificate || certificate.subject.typesAndValues.length < 3) {
+        return;
+      }
 
-        if (current && current !== null) {
-          const parsed = parseCertificate(current);
-          key = keyFromCertificate(parsed);
-          certificate = loadCertificate(current);
-
-          if (certificate.subject.typesAndValues.length === 3) {
-            username = getCertFieldValue(
-              certificate,
-              CertFieldsTypes.nickName
-            );
-            onionAddress = getCertFieldValue(
-              certificate,
-              CertFieldsTypes.commonName,
-            );
-            peerId = getCertFieldValue(
-              certificate,
-              CertFieldsTypes.peerId
-            );
-          } else {
-            return {};
-          }
-        }
-        accumulator[key] = {
-          username: username,
-          onionAddress: onionAddress,
-          peerId: peerId,
-        };
-        return accumulator;
-      },
-      {},
-    );
+      return (mapping[pubKey] = {
+        username: getCertFieldValue(certificate, CertFieldsTypes.nickName),
+        onionAddress: getCertFieldValue(
+          certificate,
+          CertFieldsTypes.commonName,
+        ),
+        peerId: getCertFieldValue(certificate, CertFieldsTypes.peerId),
+      });
+    });
+    return mapping;
   },
 );
-
-export const usersSelectors = {
-  certificates,
-  certificatesMapping,
-};
