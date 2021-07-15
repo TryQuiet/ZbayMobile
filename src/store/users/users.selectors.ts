@@ -1,5 +1,6 @@
 import { createSelector } from '@reduxjs/toolkit';
-import { getCertFieldValue, CertFieldsTypes } from '@zbayapp/identity';
+import { getCertFieldValue } from '@zbayapp/identity';
+import { CertFieldsTypes } from './const/certFieldTypes';
 import { StoreKeys } from '../store.keys';
 import { selectReducer } from '../store.utils';
 import { certificatesAdapter } from './users.adapter';
