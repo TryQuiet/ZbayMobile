@@ -1,5 +1,5 @@
 import React, { FC, useState, useEffect, useRef } from 'react';
-import { Keyboard, StyleSheet, View } from 'react-native';
+import { Dimensions, Keyboard, StyleSheet, View } from 'react-native';
 import { KeyboardAvoidingView, FlatList } from 'react-native';
 import { Message } from '../Message/Message.component';
 import { Input } from '../Input/Input.component';
@@ -7,6 +7,9 @@ import { MessageSendButton } from '../MessageSendButton/MessageSendButton.compon
 
 import { ChatProps } from './Chat.types';
 import { TextInput } from 'react-native';
+import { Sidebar } from '../Sidebar/Sidebar.component';
+
+import GestureRecognizer from 'react-native-swipe-gestures';
 
 export const Chat: FC<ChatProps> = ({
   sendMessageAction,
@@ -15,6 +18,7 @@ export const Chat: FC<ChatProps> = ({
   user,
 }) => {
   const [didKeyboardShow, setKeyboardShow] = useState(false);
+  const [isDrawerOpen, setDrawerOpen] = useState(false);
   const [messageInput, setMessageInput] = useState<string | undefined>();
 
   const messageInputRef = useRef<null | TextInput>(null);
@@ -66,41 +70,53 @@ export const Chat: FC<ChatProps> = ({
     ? customInputWrapperStyle.expanded
     : customInputWrapperStyle.default;
 
-  return (
-    <KeyboardAvoidingView
-      behavior="height"
-      keyboardVerticalOffset={25}
-      style={{
-        flex: 1,
-        flexDirection: 'column',
-        justifyContent: 'flex-end',
-        backgroundColor: 'white',
-      }}>
-      <FlatList
-        inverted
-        data={messages}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => <Message message={item} />}
-        style={{ paddingLeft: 20, paddingRight: 20 }}
-      />
-      <View style={inputWrapperStyle}>
-        <Input
-          ref={messageInputRef}
-          onChangeText={onInputTextChange}
-          placeholder={'Message #' + channel.name + ' as @' + user}
-          multiline={true}
-          style={inputStyle}
-        />
-      </View>
+  const vw = Dimensions.get('window').width;
 
-      {didKeyboardShow && (
-        <View style={{ paddingLeft: 20, paddingRight: 20, paddingBottom: 15 }}>
-          <View style={{ alignSelf: 'flex-end' }}>
-            <MessageSendButton onPress={onPress} disabled={isInputEmpty} />
-          </View>
+  return (
+    <GestureRecognizer
+      style={{ flex: 1, flexDirection: 'row' }}
+      onSwipeRight={_state => {
+        setDrawerOpen(true);
+      }}
+      onSwipeLeft={_state => {
+        setDrawerOpen(false);
+      }}>
+      <Sidebar open={isDrawerOpen} />
+      <KeyboardAvoidingView
+        behavior="height"
+        keyboardVerticalOffset={25}
+        style={{
+          width: vw,
+          justifyContent: 'flex-end',
+          backgroundColor: 'white',
+        }}>
+        <FlatList
+          inverted
+          data={messages}
+          keyExtractor={item => item.id}
+          renderItem={({ item }) => <Message message={item} />}
+          style={{ paddingLeft: 20, paddingRight: 20 }}
+        />
+        <View style={inputWrapperStyle}>
+          <Input
+            ref={messageInputRef}
+            onChangeText={onInputTextChange}
+            placeholder={'Message #' + channel.name + ' as @' + user}
+            multiline={true}
+            style={inputStyle}
+          />
         </View>
-      )}
-    </KeyboardAvoidingView>
+
+        {didKeyboardShow && (
+          <View
+            style={{ paddingLeft: 20, paddingRight: 20, paddingBottom: 15 }}>
+            <View style={{ alignSelf: 'flex-end' }}>
+              <MessageSendButton onPress={onPress} disabled={isInputEmpty} />
+            </View>
+          </View>
+        )}
+      </KeyboardAvoidingView>
+    </GestureRecognizer>
   );
 };
 

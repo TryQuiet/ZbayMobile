@@ -230,6 +230,7 @@ dependencies {
     implementation "androidx.core:core-ktx:$kotlin_version"
 
     implementation project(':react-native-fs')
+    implementation project(':react-native-linear-gradient')
 
     implementation group: 'commons-io', name: 'commons-io', version: '2.6'
 
