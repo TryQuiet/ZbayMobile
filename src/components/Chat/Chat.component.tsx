@@ -8,8 +8,7 @@ import { MessageSendButton } from '../MessageSendButton/MessageSendButton.compon
 import { ChatProps } from './Chat.types';
 import { TextInput } from 'react-native';
 import { Sidebar } from '../Sidebar/Sidebar.component';
-
-import GestureRecognizer from 'react-native-swipe-gestures';
+import Drawer from 'react-native-drawer';
 
 export const Chat: FC<ChatProps> = ({
   sendMessageAction,
@@ -18,7 +17,6 @@ export const Chat: FC<ChatProps> = ({
   user,
 }) => {
   const [didKeyboardShow, setKeyboardShow] = useState(false);
-  const [isDrawerOpen, setDrawerOpen] = useState(false);
   const [messageInput, setMessageInput] = useState<string | undefined>();
 
   const messageInputRef = useRef<null | TextInput>(null);
@@ -73,15 +71,7 @@ export const Chat: FC<ChatProps> = ({
   const vw = Dimensions.get('window').width;
 
   return (
-    <GestureRecognizer
-      style={{ flex: 1, flexDirection: 'row' }}
-      onSwipeRight={_state => {
-        setDrawerOpen(true);
-      }}
-      onSwipeLeft={_state => {
-        setDrawerOpen(false);
-      }}>
-      <Sidebar open={isDrawerOpen} />
+    <Drawer content={<Sidebar open={false} />}>
       <KeyboardAvoidingView
         behavior="height"
         keyboardVerticalOffset={25}
@@ -116,7 +106,7 @@ export const Chat: FC<ChatProps> = ({
           </View>
         )}
       </KeyboardAvoidingView>
-    </GestureRecognizer>
+    </Drawer>
   );
 };
 
