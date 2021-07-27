@@ -181,8 +181,8 @@ class WaggleService: Service() {
                     val onion = addOnion(onionPort)
 
                     onions.add(onion)
-                    client?.onOnionAdded(onion.address)
-                    startWaggle(onion)
+                    client?.onOnionAdded(onion)
+                    // startWaggle(onion)
 
                 } catch(t: Throwable) {
                     /* Stop Tor in case of any exception,
@@ -353,7 +353,7 @@ class WaggleService: Service() {
         )
     }
 
-    private fun startWaggle(hiddenService: Onion) {
+    fun startWaggle(hiddenService: Onion) {
         val directory = File(Utils.getNativeLibraryDir(applicationContext)!!)
         val libraries = File(filesDir, "libs")
         val files = File(filesDir, "waggle/files")
@@ -441,7 +441,7 @@ class WaggleService: Service() {
 
     interface Callbacks {
         fun onTorInit()
-        fun onOnionAdded(address: String)
+        fun onOnionAdded(onion: Onion)
         fun onWaggleStarted()
     }
 
