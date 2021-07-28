@@ -37,7 +37,7 @@ class TorModule(private val context: ReactApplicationContext): ReactContextBaseJ
         val serviceConnection = object: ServiceConnection {
             override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
                 waggleService = (binder as WaggleService.LocalBinder).getService()
-                waggleService?.bindClient(this@Integrator)
+                waggleService?.bindClient(this@TorModule)
             }
 
             override fun onServiceDisconnected(p0: ComponentName?) {
