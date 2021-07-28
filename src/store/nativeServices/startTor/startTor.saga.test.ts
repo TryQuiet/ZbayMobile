@@ -1,4 +1,5 @@
 import { TestApi, testSaga } from 'redux-saga-test-plan';
+import { initActions } from '../../init/init.slice';
 
 import { startTorSaga } from './startTor.saga';
 
@@ -11,6 +12,8 @@ describe('startTorSaga', () => {
 
   test('should be defined', () => {
     saga
+      .next()
+      .put(initActions.updateInitDescription('Tor initialization in progress'))
       .next()
       .isDone();
   });

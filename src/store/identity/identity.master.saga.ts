@@ -1,10 +1,8 @@
-import { PayloadAction } from '@reduxjs/toolkit';
 import { Socket } from 'socket.io-client';
-import { all, call, put, takeEvery } from 'typed-redux-saga';
+import { all, call, takeEvery } from 'typed-redux-saga';
 import { appImages } from '../../../assets';
 import { ScreenNames } from '../../const/ScreenNames.enum';
 import { replaceScreen } from '../../utils/functions/replaceScreen/replaceScreen';
-import { initActions } from '../init/init.slice';
 import { createUserCsrSaga } from './createUserCsr/createUserCsr.saga';
 import { handleIdentityError } from './handleIdentityError/handleIdentityError.saga';
 import { identityActions } from './identity.slice';
@@ -31,12 +29,5 @@ export function* identityMasterSaga(socket: Socket): Generator {
       });
     }),
     takeEvery(identityActions.throwIdentityError.type, handleIdentityError),
-    /* Hidden services management will be handled from waggle directly
-    information about common name should be passed through websocket */
-   takeEvery(initActions.onOnionAdded.type, function* (action: PayloadAction<
-    ReturnType<typeof initActions.onOnionAdded>['payload']>,
-    ): Generator {
-     yield* put(identityActions.storeCommonName(action.payload))
-   })
   ]);
 }

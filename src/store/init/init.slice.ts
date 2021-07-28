@@ -8,7 +8,7 @@ import { InitCheckKeys } from './initCheck.keys';
 export class InitState {
   public isNavigatorReady: boolean = false;
   public isCryptoEngineInitialized: boolean = false;
-  public initDescription: string = "";
+  public initDescription: string = '';
   public initChecks: EntityState<InitCheck> = initChecksAdapter.setAll(
     initChecksAdapter.getInitialState(),
     [
@@ -40,17 +40,27 @@ export const initSlice = createSlice({
     updateInitDescription: (state, action: PayloadAction<string>) => {
       state.initDescription = action.payload;
     },
-    onTorInit: (state, action: PayloadAction<boolean>) => {
-      const event = InitCheckKeys.Tor
+    onTorInit: (state, _action: PayloadAction<boolean>) => {
+      const event = InitCheckKeys.Tor;
       initChecksAdapter.updateOne(state.initChecks, {
         changes: {
           event: event,
-          passed: action.payload,
+          passed: true,
         },
         id: event,
       });
     },
-    onOnionAdded: (state, _action: PayloadAction<Onion>) => state,
+    onOnionAdded: (state, _action: PayloadAction<string>) => state,
+    onWaggleStarted: (state, _action: PayloadAction<boolean>) => {
+      const event = InitCheckKeys.Waggle;
+      initChecksAdapter.updateOne(state.initChecks, {
+        changes: {
+          event: event,
+          passed: true,
+        },
+        id: event,
+      });
+    },
     setCurrentScreen: (state, action: PayloadAction<ScreenNames>) => {
       state.currentScreen = action.payload;
     },

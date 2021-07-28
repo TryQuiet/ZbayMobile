@@ -49,8 +49,10 @@ class Integrator(private val context: ReactApplicationContext): ReactContextBase
     }
 
     @ReactMethod
-    fun startWaggle(onion: Onion) {
-        waggleService?.startWaggle(onion)
+    fun startWaggle(onionAddress: String) {
+        Thread {
+            waggleService?.startWaggle(onionAddress)
+        }.start()
     }
 
     @ReactMethod

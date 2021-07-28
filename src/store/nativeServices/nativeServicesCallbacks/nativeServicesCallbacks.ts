@@ -16,17 +16,18 @@ export const deviceEvents = () => {
   return eventChannel<
     | ReturnType<typeof initActions.onTorInit>
     | ReturnType<typeof initActions.onOnionAdded>
+    | ReturnType<typeof initActions.onWaggleStarted>
   >(emit => {
     const subscriptions = [
       DeviceEventEmitter.addListener(DeviceEventKeys.TorInit, () =>
-        emit(
-          initActions.onTorInit(true)
-        ),
+        emit(initActions.onTorInit(true)),
       ),
-      DeviceEventEmitter.addListener(DeviceEventKeys.OnionAdded, (onion: Onion) => 
-        emit(
-          initActions.onOnionAdded(onion)
-        ),
+      DeviceEventEmitter.addListener(
+        DeviceEventKeys.OnionAdded,
+        (address: string) => emit(initActions.onOnionAdded(address)),
+      ),
+      DeviceEventEmitter.addListener(DeviceEventKeys.WaggleStarted, () =>
+        emit(initActions.onWaggleStarted(true)),
       ),
     ];
     return () => {

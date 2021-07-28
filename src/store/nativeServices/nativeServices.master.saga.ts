@@ -11,12 +11,9 @@ export function* nativeServicesMasterSaga(): Generator {
     /* Starting Tor is obligatory and should be performed
     at the very beginning of app lifecycle */
     fork(startTorSaga),
+    takeEvery(nativeServicesActions.startWaggle.type, startWaggleSaga),
     takeEvery(
-      nativeServicesActions.startWaggle,
-      startWaggleSaga,
-    ),
-    takeEvery(
-      nativeServicesActions.initPushNotifications,
+      nativeServicesActions.initPushNotifications.type,
       pushNotificationsSaga,
     ),
   ]);
