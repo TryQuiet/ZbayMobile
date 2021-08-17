@@ -14,6 +14,7 @@ module.exports = {
       /\/android\/.*/,
       /\/ios\/.*/,
     ]),
+    sourceExts: ['jsx', 'js', 'ts', 'tsx'],
   },
   transformer: {
     getTransformOptions: async () => ({
@@ -22,8 +23,5 @@ module.exports = {
         inlineRequires: true,
       },
     }),
-  },
-  resolver: {
-    sourceExts: ['jsx', 'js', 'ts', 'tsx'],
   },
 };
