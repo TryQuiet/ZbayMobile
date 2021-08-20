@@ -77,10 +77,4 @@ class TorModule(private val context: ReactApplicationContext): ReactContextBaseJ
             .emit("onOnionAdded", address)
     }
 
-    override fun onWaggleStarted() {
-        context
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-            .emit("onWaggleStarted", true)
-    }
-
 }

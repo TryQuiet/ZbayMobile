@@ -1,17 +1,14 @@
 {
-  "name": "demo",
+  "name": "nodejs-project",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "patch": "patch -f -p0 < modules.patch && patch -f -p0 < wrtc.patch && rm -rf node_modules/wrtc"
   },
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "typescript": "^4.3.5"
-  },
   "dependencies": {
-    "commander": "^8.1.0"
+    "waggle": "^2.1.0-0"
   }
 }

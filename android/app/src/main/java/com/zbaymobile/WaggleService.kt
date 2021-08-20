@@ -383,8 +383,6 @@ class WaggleService: Service() {
             Thread.sleep(500)
         }
 
-        client?.onWaggleStarted()
-
         try {
             getOutput(nodeProcess!!)
         } catch(e: InterruptedIOException) {}
@@ -443,7 +441,6 @@ class WaggleService: Service() {
     interface Callbacks {
         fun onTorInit()
         fun onOnionAdded(address: String)
-        fun onWaggleStarted()
     }
 
     inner class LocalBinder: Binder() {

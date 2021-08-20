@@ -16,7 +16,7 @@ export const deviceEvents = () => {
   return eventChannel<
     | ReturnType<typeof initActions.onTorInit>
     | ReturnType<typeof initActions.onOnionAdded>
-    | ReturnType<typeof initActions.onWaggleStarted>
+    | ReturnType<typeof initActions.onDataDirectoryCreated>
   >(emit => {
     const subscriptions = [
       nativeEventEmitter?.addListener(NativeEventKeys.TorInit, () =>
@@ -26,8 +26,9 @@ export const deviceEvents = () => {
         NativeEventKeys.OnionAdded,
         (address: string) => emit(initActions.onOnionAdded(address)),
       ),
-      nativeEventEmitter?.addListener(NativeEventKeys.WaggleStarted, () =>
-        emit(initActions.onWaggleStarted(true)),
+      nativeEventEmitter?.addListener(
+        NativeEventKeys.OnDataDirectoryCreated,
+        (path: string) => emit(initActions.onDataDirectoryCreated(path)),
       ),
     ];
     return () => {

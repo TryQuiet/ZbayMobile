@@ -1,7 +1,7 @@
 import { PayloadAction } from '@reduxjs/toolkit';
-import { put, all, takeEvery } from 'typed-redux-saga';
+import { NativeModules } from 'react-native';
+import { put, call, all, takeEvery } from 'typed-redux-saga';
 import { identityActions } from '../identity/identity.slice';
-import { nativeServicesActions } from '../nativeServices/nativeServices.slice';
 import { startConnectionSaga } from '../socket/startConnection/startConnection.saga';
 import { doOnRestoreSaga } from './doOnRestore/doOnRestore.saga';
 import { initActions } from './init.slice';
@@ -12,7 +12,7 @@ export function* initMasterSaga(): Generator {
     takeEvery(
       initActions.onTorInit.type,
       function* (): Generator {
-        yield* put(nativeServicesActions.startWaggle());
+        yield* call(NativeModules.TorModule.startHiddenService);
       }
     ),
     takeEvery(

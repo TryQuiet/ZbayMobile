@@ -6,6 +6,8 @@ import { InitCheck } from './init.types';
 import { InitCheckKeys } from './initCheck.keys';
 
 export class InitState {
+  public dataDirectoryPath: string = '';
+  public hiddenServiceAddress: string = '';
   public isNavigatorReady: boolean = false;
   public isCryptoEngineInitialized: boolean = false;
   public initDescription: string = '';
@@ -50,7 +52,12 @@ export const initSlice = createSlice({
         id: event,
       });
     },
-    onOnionAdded: (state, _action: PayloadAction<string>) => state,
+    onOnionAdded: (state, action: PayloadAction<string>) => {
+      state.hiddenServiceAddress = action.payload;
+    },
+    onDataDirectoryCreated: (state, action: PayloadAction<string>) => {
+      state.dataDirectoryPath = action.payload;
+    },
     onWaggleStarted: (state, _action: PayloadAction<boolean>) => {
       const event = InitCheckKeys.Waggle;
       initChecksAdapter.updateOne(state.initChecks, {
