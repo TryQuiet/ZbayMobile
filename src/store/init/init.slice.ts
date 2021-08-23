@@ -7,7 +7,14 @@ import { InitCheckKeys } from './initCheck.keys';
 
 export class InitState {
   public dataDirectoryPath: string = '';
-  public hiddenServiceAddress: string = '';
+  public torData: TorData = {
+    socksPort: 0,
+    controlPort: 0,
+  };
+  public hiddenServiceData: OnionData = {
+    address: '',
+    port: 0,
+  };
   public isNavigatorReady: boolean = false;
   public isCryptoEngineInitialized: boolean = false;
   public initDescription: string = '';
@@ -27,6 +34,16 @@ export class InitState {
   public currentScreen: ScreenNames = ScreenNames.SplashScreen;
 }
 
+export interface TorData {
+  socksPort: number;
+  controlPort: number;
+}
+
+export interface OnionData {
+  address: string;
+  port: number;
+}
+
 export const initSlice = createSlice({
   initialState: { ...new InitState() },
   name: StoreKeys.Init,
@@ -42,7 +59,7 @@ export const initSlice = createSlice({
     updateInitDescription: (state, action: PayloadAction<string>) => {
       state.initDescription = action.payload;
     },
-    onTorInit: (state, _action: PayloadAction<boolean>) => {
+    onTorInit: (state, action: PayloadAction<TorData>) => {
       const event = InitCheckKeys.Tor;
       initChecksAdapter.updateOne(state.initChecks, {
         changes: {
@@ -51,9 +68,10 @@ export const initSlice = createSlice({
         },
         id: event,
       });
+      state.torData = action.payload;
     },
-    onOnionAdded: (state, action: PayloadAction<string>) => {
-      state.hiddenServiceAddress = action.payload;
+    onOnionAdded: (state, action: PayloadAction<OnionData>) => {
+      state.hiddenServiceData = action.payload;
     },
     onDataDirectoryCreated: (state, action: PayloadAction<string>) => {
       state.dataDirectoryPath = action.payload;

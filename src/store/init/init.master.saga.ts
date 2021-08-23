@@ -6,28 +6,32 @@ import { startConnectionSaga } from '../socket/startConnection/startConnection.s
 import { doOnRestoreSaga } from './doOnRestore/doOnRestore.saga';
 import { initActions } from './init.slice';
 
+import FindFreePort from 'react-native-find-free-port';
+
 export function* initMasterSaga(): Generator {
   yield all([
     takeEvery(initActions.doOnRestore.type, doOnRestoreSaga),
     takeEvery(
       initActions.onTorInit.type,
-      function* (): Generator {
-        yield* call(NativeModules.TorModule.startHiddenService);
-      }
+      function* (
+        _action: PayloadAction<
+          ReturnType<typeof initActions.onTorInit>['payload']
+        >,
+      ): Generator {
+        const port = yield* call(FindFreePort.getFirstStartingFrom, 9010);
+        yield* call(NativeModules.TorModule.startHiddenService, port);
+      },
     ),
     takeEvery(
       initActions.onOnionAdded.type,
       function* (
         action: PayloadAction<
-        ReturnType<typeof initActions.onOnionAdded>['payload']
+          ReturnType<typeof initActions.onOnionAdded>['payload']
         >,
-        ): Generator {
-          yield* put(identityActions.storeCommonName(action.payload));
+      ): Generator {
+        yield* put(identityActions.storeCommonName(action.payload.address));
       },
     ),
-    takeEvery(
-      initActions.onWaggleStarted.type, 
-      startConnectionSaga
-    ),
+    takeEvery(initActions.onWaggleStarted.type, startConnectionSaga),
   ]);
 }

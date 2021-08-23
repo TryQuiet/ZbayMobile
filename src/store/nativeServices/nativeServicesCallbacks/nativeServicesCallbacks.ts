@@ -1,6 +1,6 @@
 import { eventChannel } from 'redux-saga';
 import { call, put, take } from 'typed-redux-saga';
-import { initActions } from '../../init/init.slice';
+import { initActions, OnionData, TorData } from '../../init/init.slice';
 import { NativeEventKeys } from './nativeEvent.keys';
 import nativeEventEmitter from './nativeEventEmitter';
 
@@ -19,12 +19,17 @@ export const deviceEvents = () => {
     | ReturnType<typeof initActions.onDataDirectoryCreated>
   >(emit => {
     const subscriptions = [
-      nativeEventEmitter?.addListener(NativeEventKeys.TorInit, () =>
-        emit(initActions.onTorInit(true)),
+      nativeEventEmitter?.addListener(
+        NativeEventKeys.TorInit,
+        (data: TorData) => {
+          emit(initActions.onTorInit(data));
+        },
       ),
       nativeEventEmitter?.addListener(
         NativeEventKeys.OnionAdded,
-        (address: string) => emit(initActions.onOnionAdded(address)),
+        (data: OnionData) => {
+          emit(initActions.onOnionAdded(data));
+        },
       ),
       nativeEventEmitter?.addListener(
         NativeEventKeys.OnDataDirectoryCreated,

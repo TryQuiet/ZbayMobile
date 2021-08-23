@@ -10,22 +10,16 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.zbaymobile.Scheme.Onion
-import com.zbaymobile.Utils.Const.DEFAULT_CONTROL_PORT
-import com.zbaymobile.Utils.Const.DEFAULT_SOCKS_PORT
 import com.zbaymobile.Utils.Const.NOTIFICATION_CHANNEL_ID
 import com.zbaymobile.Utils.Const.NOTIFICATION_FOREGROUND_SERVICE_ID
 import com.zbaymobile.Utils.Const.SERVICE_ACTION_EXECUTE
 import com.zbaymobile.Utils.Const.SERVICE_ACTION_STOP
-import com.zbaymobile.Utils.Const.TAG_NODE
 import com.zbaymobile.Utils.Const.TAG_TOR
-import com.zbaymobile.Utils.Utils
-import com.zbaymobile.Utils.Utils.checkPort
 import com.zbaymobile.Utils.Utils.exec
 import com.zbaymobile.Utils.Utils.getOutput
 import net.freehaven.tor.control.TorControlConnection
 import org.torproject.android.binary.TorResourceInstaller
 import java.io.*
-import java.lang.Process
 import java.net.Socket
 import java.util.concurrent.Executors
 
@@ -48,14 +42,10 @@ class WaggleService: Service() {
 
     private var torControlConnection: TorControlConnection? = null
     private var torServiceConnection: ServiceConnection? = null
+
     private var shouldUnbindTorService = false
 
-    private var controlPort: Int = DEFAULT_CONTROL_PORT
-    private var socksPort: Int = DEFAULT_SOCKS_PORT
-
     private var onions = mutableListOf<Onion>()
-
-    private var nodeProcess: Process? = null
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private fun createNotificationChannel() {
@@ -144,7 +134,7 @@ class WaggleService: Service() {
         return START_REDELIVER_INTENT
     }
 
-    private fun startTor() {
+    private fun startTor(socksPort: Int, controlPort: Int) {
         /**
          * Default torrc file is being created by tor-android lib
          * so there is a need for overwrite it with custom file
@@ -153,34 +143,28 @@ class WaggleService: Service() {
 
         fileTorrc = File(filesDir, "torrc")
 
-        val torrcCustom: File? = updateTorrcCustomFile()
+        val torrcCustom: File? = updateTorrcCustomFile(socksPort, controlPort)
         if ((torrcCustom?.exists()) == false || (torrcCustom?.canRead()) == false)
             return
 
         val torBinary = TorResourceInstaller(this, filesDir).installResources()
 
         if(runTorCommand(torBinary, torrcCustom)) {
-            initControlConnection()
+            initControlConnection(controlPort)
         }
 
         torServiceConnection = object: ServiceConnection {
             override fun onServiceConnected(componentName: ComponentName?, iBinder: IBinder?) {
                 try {
-                    torControlConnection = initControlConnection()
+                    torControlConnection = initControlConnection(controlPort)
                     while(torControlConnection == null) {
                         Log.d(TAG_TOR, "Waiting for Tor control connection...")
                         Thread.sleep(500)
-                        torControlConnection = initControlConnection()
+                        torControlConnection = initControlConnection(controlPort)
                     }
 
                     /** Tor has been successfully initialized **/
-                    client?.onTorInit()
-
-                    val onionPort = checkPort(5555)
-                    val onion = addOnion(onionPort)
-
-                    onions.add(onion)
-                    client?.onOnionAdded(onion.address)
+                    client?.onTorInit(socksPort, controlPort)
 
                 } catch(t: Throwable) {
                     /* Stop Tor in case of any exception,
@@ -219,7 +203,7 @@ class WaggleService: Service() {
         }
     }
 
-    private fun initControlConnection(): TorControlConnection {
+    private fun initControlConnection(controlPort: Int): TorControlConnection {
         val socket = Socket("127.0.0.1", controlPort)
         // Client will be trying to connect for no more than 1 minute
         socket.soTimeout = 60000
@@ -257,8 +241,6 @@ class WaggleService: Service() {
             return false
         }
 
-        client?.onTorInit()
-
         return true
     }
 
@@ -271,19 +253,12 @@ class WaggleService: Service() {
         return true
     }
 
-    private fun updateTorrcCustomFile(): File? {
+    private fun updateTorrcCustomFile(socksPort: Int, controlPort: Int): File? {
         val extraLines = StringBuffer()
 
         extraLines.append("RunAsDaemon 1").append('\n')
-
         extraLines.append("CookieAuthentication 0").append('\n')
-
-        controlPort = checkPort(prefs.controlPort)
-        prefs.controlPort = controlPort
         extraLines.append("ControlPort ").append(controlPort).append('\n')
-
-        socksPort = checkPort(prefs.socksPort)
-        prefs.socksPort = socksPort
         extraLines.append("SOCKSPort ").append(socksPort).append('\n')
 
         Log.d("TORRC","torrc.custom=\n$extraLines")
@@ -327,86 +302,32 @@ class WaggleService: Service() {
         }.start()
     }
 
-    private fun addOnion(port: Int): Onion {
+    fun addHiddenService(port: Int) {
         val key = prefs.onionPrivKey ?: "NEW:BEST"
 
-        val res = torControlConnection!!.addOnion(
+        val res = torControlConnection?.addOnion(
             key,
             mutableMapOf(port to "127.0.0.1:$port"),
             listOf("Detach")
         )
 
-        val address = res["onionAddress"].toString()
+        val address = res?.get("onionAddress").toString()
 
-        if(res["onionPrivKey"] != null) {
+        if(res?.get("onionPrivKey") != null) {
             prefs.onionPrivKey = res["onionPrivKey"]
         }
 
         Log.d(TAG_TOR, "Hidden service created with address $address.onion")
 
-        return Onion(
+        val onion = Onion(
             address = address,
             key = key,
             port = port
         )
-    }
 
-    fun startWaggle(onionAddress: String) {
+        onions.add(onion)
 
-        val hiddenService = onions.firstOrNull { onion -> onion.address == onionAddress } ?: return
-
-        val directory = File(Utils.getNativeLibraryDir(applicationContext)!!)
-        val libraries = File(filesDir, "libs")
-        val files = File(filesDir, "waggle/files")
-
-        // Create paths
-        val channels = File(files, "ZbayChannels")
-        channels.mkdirs()
-        Utils.setFilePermissions(channels)
-
-        val orbitdb = File(files, "OrbitDB")
-        orbitdb.mkdirs()
-        Utils.setFilePermissions(orbitdb)
-
-        nodeProcess = runWaggleCommand(
-            directory = directory,
-            libraries = libraries,
-            files = files,
-            hiddenService = hiddenService
-        )
-
-        for(i in 1..3) { // Wait for client to bind process
-            if(client != null) {
-                break
-            }
-            Log.d(TAG_NODE, "Waiting for client to bind process...")
-            Thread.sleep(500)
-        }
-
-        try {
-            getOutput(nodeProcess!!)
-        } catch(e: InterruptedIOException) {}
-    }
-
-    private fun runWaggleCommand(directory: File, libraries: File, files: File, hiddenService: Onion): Process {
-        val waggle = File(filesDir, "waggle")
-        return exec(
-            dir = directory,
-            command = arrayOf(
-                "./libnode.so",
-                "${waggle.canonicalPath}/lib/mobileWaggleManager.js",
-                "-a", "${hiddenService.address}.onion",
-                "-p", "${hiddenService.port}",
-                "-s", "$socksPort",
-                "-d", "$files"
-            ),
-            env = mapOf(
-                "LD_LIBRARY_PATH" to "$libraries",
-                "HOME" to "$files",
-                "TMP_DIR" to "$files",
-                "DEBUG" to "waggle*,-waggle:libp2p:err"
-            )
-        )
+        client?.onOnionAdded(address = onion.address, port = onion.port)
     }
 
     override fun onBind(p0: Intent?): IBinder {
@@ -415,7 +336,6 @@ class WaggleService: Service() {
 
     private fun stopService() {
         stopTor()
-        nodeProcess?.destroy()
         wakelock?.let {
             if (it.isHeld) {
                 it.release()
@@ -439,8 +359,8 @@ class WaggleService: Service() {
     }
 
     interface Callbacks {
-        fun onTorInit()
-        fun onOnionAdded(address: String)
+        fun onTorInit(socksPort: Int, controlPort: Int)
+        fun onOnionAdded(address: String, port: Int)
     }
 
     inner class LocalBinder: Binder() {
@@ -449,9 +369,11 @@ class WaggleService: Service() {
         }
     }
 
-    inner class IncomingIntentRouter(val intent: Intent?): Runnable {
+    inner class IncomingIntentRouter(private val intent: Intent): Runnable {
         override fun run() {
-            startTor()
+            val socksPort = intent.getIntExtra("socksPort", 9050)
+            val controlPort = intent.getIntExtra("controlPort", 9151)
+            startTor(socksPort, controlPort)
         }
     }
 }

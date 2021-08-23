@@ -7,11 +7,10 @@ import android.content.ServiceConnection
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.zbaymobile.Utils.Const.SERVICE_ACTION_EXECUTE
+import java.io.File
 
 
 class TorModule(private val context: ReactApplicationContext): ReactContextBaseJavaModule(), WaggleService.Callbacks {
@@ -23,10 +22,12 @@ class TorModule(private val context: ReactApplicationContext): ReactContextBaseJ
     }
 
     @ReactMethod
-    fun startTor() {
+    fun startTor(socksPort: Int, controlPort: Int) {
 
         val service = Intent(context, WaggleService::class.java)
             service.action = SERVICE_ACTION_EXECUTE
+            service.putExtra("socksPort", socksPort)
+            service.putExtra("controlPort", controlPort)
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(service)
@@ -49,10 +50,20 @@ class TorModule(private val context: ReactApplicationContext): ReactContextBaseJ
     }
 
     @ReactMethod
-    fun startWaggle(onionAddress: String) {
-        Thread {
-            waggleService?.startWaggle(onionAddress)
-        }.start()
+    fun startHiddenService(port: Int) {
+        waggleService?.addHiddenService(port)
+    }
+
+    @ReactMethod
+    fun createDataDirectory() {
+        val dataDirectory = File(context.filesDir, "waggle/files")
+        dataDirectory.mkdirs()
+
+        val path = dataDirectory.absolutePath
+
+        context
+            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+            .emit("onDataDirectoryCreated", path)
     }
 
     @ReactMethod
@@ -65,16 +76,22 @@ class TorModule(private val context: ReactApplicationContext): ReactContextBaseJ
         context.startService(service)
     }
 
-    override fun onTorInit() {
+    override fun onTorInit(socksPort: Int, controlPort: Int) {
+        val payload: WritableMap = Arguments.createMap()
+        payload.putInt("socksPort", socksPort)
+        payload.putInt("controlPort", controlPort)
         context
             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-                .emit("onTorInit", true)
+                .emit("onTorInit", payload)
     }
 
-    override fun onOnionAdded(address: String) {
+    override fun onOnionAdded(address: String, port: Int) {
+        val payload: WritableMap = Arguments.createMap()
+        payload.putString("address", address)
+        payload.putInt("port", port)
         context
             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-            .emit("onOnionAdded", address)
+            .emit("onOnionAdded", payload)
     }
 
 }

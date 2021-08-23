@@ -13,9 +13,6 @@ object Const {
     const val TAG_NODE ="NODE"
     const val TAG_TOR = "TOR"
 
-    const val DEFAULT_SOCKS_PORT = 9050
-    const val DEFAULT_CONTROL_PORT = 9151
-
     val SERVICE_ACTION_EXECUTE = "$PACKAGE_NAME.service.execute"
     val SERVICE_ACTION_STOP = "$PACKAGE_NAME.service.stop"
 }
