@@ -1,12 +1,13 @@
 import { PayloadAction } from '@reduxjs/toolkit';
 import { NativeModules } from 'react-native';
-import { put, call, all, takeEvery } from 'typed-redux-saga';
+import { put, call, select, all, takeEvery } from 'typed-redux-saga';
 import { identityActions } from '../identity/identity.slice';
 import { startConnectionSaga } from '../socket/startConnection/startConnection.saga';
 import { doOnRestoreSaga } from './doOnRestore/doOnRestore.saga';
 import { initActions } from './init.slice';
 
 import FindFreePort from 'react-native-find-free-port';
+import { identitySelectors } from '../identity/identity.selectors';
 
 export function* initMasterSaga(): Generator {
   yield all([
@@ -19,7 +20,8 @@ export function* initMasterSaga(): Generator {
         >,
       ): Generator {
         const port = yield* call(FindFreePort.getFirstStartingFrom, 9010);
-        yield* call(NativeModules.TorModule.startHiddenService, port);
+        const key = yield* select(identitySelectors.commonKey);
+        yield* call(NativeModules.TorModule.startHiddenService, port, key);
       },
     ),
     takeEvery(
@@ -29,7 +31,7 @@ export function* initMasterSaga(): Generator {
           ReturnType<typeof initActions.onOnionAdded>['payload']
         >,
       ): Generator {
-        yield* put(identityActions.storeCommonName(action.payload.address));
+        yield* put(identityActions.storeCommonData(action.payload));
       },
     ),
     takeEvery(initActions.onWaggleStarted.type, startConnectionSaga),

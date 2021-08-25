@@ -221,27 +221,46 @@ class TorModule: RCTEventEmitter {
     DispatchQueue.main.asyncAfter(deadline: .now() + 15, execute: initRetry!)
   }
   
-  @objc(startHiddenService:)
-  func startHiddenService(port: in_port_t) {
-    print("zbay: start hidden service called")
+  @objc(startHiddenService:key:)
+  func startHiddenService(port: in_port_t, key: String) {
+    // Observer command output
     let observer: TORObserverBlock = {_,lines,_ in
+      
+      var onionAddress = "";
+      var onionKey = key;
+      
       lines.forEach { Data in
+        // Read output line
         let datastring = NSString(data: Data, encoding: String.Encoding.utf8.rawValue)
+        
+        // Get onion address
         if(datastring?.contains("ServiceID=") == true) {
           let address = datastring!.components(separatedBy: "ServiceID=").last!
           // Make sure address is valid V3
           if address.count == 56 {
-            let payload: NSMutableDictionary = [:]
-            payload["address"] = address
-            payload["port"] = port
-            self.sendEvent(withName: "onOnionAdded", body: payload)
+            onionAddress = address
           }
         }
+        
+        // Get private key
+        if(datastring?.contains("PrivateKey=") == true) {
+          onionKey = datastring!.components(separatedBy: "PrivateKey=").last!
+        }
+        
+        // Send data on command complete
+        if(datastring?.contains("OK") == true) {
+          let payload: NSMutableDictionary = [:]
+          payload["address"] = onionAddress
+          payload["key"] = onionKey
+          payload["port"] = port
+          self.sendEvent(withName: "onOnionAdded", body: payload)
+        }
+        
         print("zbay: \(datastring ?? "failed to read value from datastring")")
       }
       return true
     }
-    torController?.sendCommand("ADD_ONION", arguments: ["NEW:BEST", "Flags=Detach", "Port=\(port)"], data: nil, observer: observer)
+    torController?.sendCommand("ADD_ONION", arguments: [key, "Flags=Detach", "Port=\(port)"], data: nil, observer: observer)
   }
   
   @objc

@@ -13,6 +13,7 @@ export class InitState {
   };
   public hiddenServiceData: OnionData = {
     address: '',
+    key: 'NEW:BEST',
     port: 0,
   };
   public isNavigatorReady: boolean = false;
@@ -41,6 +42,7 @@ export interface TorData {
 
 export interface OnionData {
   address: string;
+  key: string;
   port: number;
 }
 
