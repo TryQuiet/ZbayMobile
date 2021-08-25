@@ -14,7 +14,7 @@ class TorModule: RCTEventEmitter {
   private var state: TorState = .none
   private var progress = 0
   
-  private func getTorBaseConfiguration(socksPort: Int, controlPort: Int) -> TorConfiguration {
+  private func getTorBaseConfiguration(socksPort: in_port_t, controlPort: in_port_t) -> TorConfiguration {
     let conf = TorConfiguration()
     
     conf.cookieAuthentication = true
@@ -53,21 +53,18 @@ class TorModule: RCTEventEmitter {
   
   private var initRetry: DispatchWorkItem?
   
-  @objc
-  func startTor() -> Void {
+  @objc(startTor:controlPort:)
+  func startTor(socksPort: in_port_t, controlPort: in_port_t) -> Void {
     
     cancelInitRetry()
     state = .started
-    
-    let controlPort: Int = 39060
-    let socksPort: Int = 39050
     
     let torBaseConfiguration = getTorBaseConfiguration(
       socksPort: socksPort, controlPort: controlPort
     )
     
     if (self.torController == nil) {
-      self.torController = TorController(socketHost: "127.0.0.1", port: in_port_t(controlPort))
+      self.torController = TorController(socketHost: "127.0.0.1", port: controlPort)
     }
     
     #if DEBUG
@@ -190,7 +187,10 @@ class TorModule: RCTEventEmitter {
               if progress >= 100 {
                 self.torController?.removeObserver(progressObs)
                 // Notify client that Tor has been successfully initialized
-                self.sendEvent(withName: "onTorInit", body: true)
+                let payload: NSMutableDictionary = [:]
+                payload["socksPort"] = socksPort
+                payload["controlPort"] = controlPort
+                self.sendEvent(withName: "onTorInit", body: payload)
               }
               
               return true
@@ -221,20 +221,27 @@ class TorModule: RCTEventEmitter {
     DispatchQueue.main.asyncAfter(deadline: .now() + 15, execute: initRetry!)
   }
   
-  @objc
-  func startHiddenService() {
+  @objc(startHiddenService:)
+  func startHiddenService(port: in_port_t) {
+    print("zbay: start hidden service called")
     let observer: TORObserverBlock = {_,lines,_ in
       lines.forEach { Data in
         let datastring = NSString(data: Data, encoding: String.Encoding.utf8.rawValue)
-        if(datastring?.contains("ServiceID=") != nil) {
-          let address = datastring?.components(separatedBy: "ServiceID=").last
-          self.sendEvent(withName: "onOnionAdded", body: address)
+        if(datastring?.contains("ServiceID=") == true) {
+          let address = datastring!.components(separatedBy: "ServiceID=").last!
+          // Make sure address is valid V3
+          if address.count == 56 {
+            let payload: NSMutableDictionary = [:]
+            payload["address"] = address
+            payload["port"] = port
+            self.sendEvent(withName: "onOnionAdded", body: payload)
+          }
         }
         print("zbay: \(datastring ?? "failed to read value from datastring")")
       }
       return true
     }
-    torController?.sendCommand("ADD_ONION", arguments: ["NEW:BEST", "Flags=Detach", "Port=9010"], data: nil, observer: observer)
+    torController?.sendCommand("ADD_ONION", arguments: ["NEW:BEST", "Flags=Detach", "Port=\(port)"], data: nil, observer: observer)
   }
   
   @objc

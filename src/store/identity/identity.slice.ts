@@ -28,6 +28,9 @@ export interface CreateUserCsrPayload {
   zbayNickname: string;
   commonName: string;
   peerId: string;
+  dmPublicKey: string;
+  signAlg: string;
+  hashAlg: string;
 }
 
 export const identitySlice = createSlice({
