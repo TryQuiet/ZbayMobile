@@ -50,8 +50,8 @@ class TorModule(private val context: ReactApplicationContext): ReactContextBaseJ
     }
 
     @ReactMethod
-    fun startHiddenService(port: Int) {
-        waggleService?.addHiddenService(port)
+    fun startHiddenService(port: Int, key: String) {
+        waggleService?.addHiddenService(port, key)
     }
 
     @ReactMethod
@@ -85,9 +85,10 @@ class TorModule(private val context: ReactApplicationContext): ReactContextBaseJ
                 .emit("onTorInit", payload)
     }
 
-    override fun onOnionAdded(address: String, port: Int) {
+    override fun onOnionAdded(address: String, key: String, port: Int) {
         val payload: WritableMap = Arguments.createMap()
         payload.putString("address", address)
+        payload.putString("key", key)
         payload.putInt("port", port)
         context
             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)

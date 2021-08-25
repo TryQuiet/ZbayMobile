@@ -34,8 +34,6 @@ class WaggleService: Service() {
     private val binder = LocalBinder()
     private val executor = Executors.newCachedThreadPool()
 
-    private lateinit var prefs: Prefs
-
     private var client: Callbacks? = null
 
     private var fileTorrc: File? = null
@@ -91,8 +89,6 @@ class WaggleService: Service() {
 
     override fun onCreate() {
         super.onCreate()
-
-        prefs = (application as MainApplication).sharedPrefs
 
         Log.d("WAGGLE", "onServiceCreated")
 
@@ -302,8 +298,9 @@ class WaggleService: Service() {
         }.start()
     }
 
-    fun addHiddenService(port: Int) {
-        val key = prefs.onionPrivKey ?: "NEW:BEST"
+    fun addHiddenService(port: Int, privKey: String) {
+
+        var key: String = privKey
 
         val res = torControlConnection?.addOnion(
             key,
@@ -313,9 +310,7 @@ class WaggleService: Service() {
 
         val address = res?.get("onionAddress").toString()
 
-        if(res?.get("onionPrivKey") != null) {
-            prefs.onionPrivKey = res["onionPrivKey"]
-        }
+        key = res?.get("onionPrivKey") ?: privKey
 
         Log.d(TAG_TOR, "Hidden service created with address $address.onion")
 
@@ -327,7 +322,7 @@ class WaggleService: Service() {
 
         onions.add(onion)
 
-        client?.onOnionAdded(address = onion.address, port = onion.port)
+        client?.onOnionAdded(address = onion.address, key = onion.key, port = onion.port)
     }
 
     override fun onBind(p0: Intent?): IBinder {
@@ -360,7 +355,7 @@ class WaggleService: Service() {
 
     interface Callbacks {
         fun onTorInit(socksPort: Int, controlPort: Int)
-        fun onOnionAdded(address: String, port: Int)
+        fun onOnionAdded(address: String, key: String, port: Int)
     }
 
     inner class LocalBinder: Binder() {
