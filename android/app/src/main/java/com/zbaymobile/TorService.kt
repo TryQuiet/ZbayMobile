@@ -15,6 +15,7 @@ import com.zbaymobile.Utils.Const.NOTIFICATION_FOREGROUND_SERVICE_ID
 import com.zbaymobile.Utils.Const.SERVICE_ACTION_EXECUTE
 import com.zbaymobile.Utils.Const.SERVICE_ACTION_STOP
 import com.zbaymobile.Utils.Const.TAG_TOR
+import com.zbaymobile.Utils.Const.TAG_TOR_ERR
 import com.zbaymobile.Utils.Utils.exec
 import com.zbaymobile.Utils.Utils.getOutput
 import net.freehaven.tor.control.TorControlConnection
@@ -24,7 +25,7 @@ import java.net.Socket
 import java.util.concurrent.Executors
 
 
-class WaggleService: Service() {
+class TorService: Service() {
 
     private var wakelock: PowerManager.WakeLock? = null
 
@@ -76,7 +77,7 @@ class WaggleService: Service() {
 
         // Set Exit button action
         val exitIntent =
-            Intent(applicationContext, WaggleService::class.java).setAction(SERVICE_ACTION_STOP)
+            Intent(applicationContext, TorService::class.java).setAction(SERVICE_ACTION_STOP)
 
         notificationBuilder!!.addAction(
             android.R.drawable.ic_delete,
@@ -90,8 +91,6 @@ class WaggleService: Service() {
     override fun onCreate() {
         super.onCreate()
 
-        Log.d("WAGGLE", "onServiceCreated")
-
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             createNotificationChannel()
 
@@ -100,8 +99,6 @@ class WaggleService: Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-
-        Log.d("WAGGLE", "onStartCommand")
 
         wakelock =
             (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
@@ -166,7 +163,7 @@ class WaggleService: Service() {
                     /* Stop Tor in case of any exception,
                        to avoid running unhandled instances
                        and occupying ports */
-                    Log.e("TOR_ERR", t.message ?: "unknown error")
+                    Log.e(TAG_TOR_ERR, t.message ?: "unknown error")
                     stopTor()
                     torServiceConnection = null
                 }
@@ -189,7 +186,7 @@ class WaggleService: Service() {
 
         val serviceIntent = Intent(
             this,
-            WaggleService::class.java
+            TorService::class.java
         )
 
         shouldUnbindTorService = if (Build.VERSION.SDK_INT < 29) {
@@ -228,12 +225,12 @@ class WaggleService: Service() {
             )
             getOutput(process)
         } catch (e: Exception) {
-            Log.e("TOR_ERR", "Tor was unable to start: " + e.message, e)
+            Log.e(TAG_TOR_ERR, "Tor was unable to start: " + e.message, e)
             return false
         }
 
         if(exitCode != 0) {
-            Log.e("TOR_ERR", "Tor did not start. Exit: $exitCode")
+            Log.e(TAG_TOR_ERR, "Tor did not start. Exit: $exitCode")
             return false
         }
 
@@ -285,7 +282,7 @@ class WaggleService: Service() {
                     Log.d(TAG_TOR, "Using control port to shutdown Tor")
                     torControlConnection?.shutdownTor("HALT")
                 } catch (e: IOException) {
-                    Log.d(TAG_TOR, "Error shutting down Tor via control port", e)
+                    Log.d(TAG_TOR_ERR, "Error shutting down Tor via control port", e)
                 }
 
                 if (shouldUnbindTorService) {
@@ -359,8 +356,8 @@ class WaggleService: Service() {
     }
 
     inner class LocalBinder: Binder() {
-        fun getService(): WaggleService {
-            return this@WaggleService
+        fun getService(): TorService {
+            return this@TorService
         }
     }
 

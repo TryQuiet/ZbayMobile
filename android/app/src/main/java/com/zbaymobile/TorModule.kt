@@ -13,9 +13,9 @@ import com.zbaymobile.Utils.Const.SERVICE_ACTION_EXECUTE
 import java.io.File
 
 
-class TorModule(private val context: ReactApplicationContext): ReactContextBaseJavaModule(), WaggleService.Callbacks {
+class TorModule(private val context: ReactApplicationContext): ReactContextBaseJavaModule(), TorService.Callbacks {
 
-    private var waggleService: WaggleService? = null
+    private var torService: TorService? = null
 
     override fun getName(): String {
         return "TorModule"
@@ -24,7 +24,7 @@ class TorModule(private val context: ReactApplicationContext): ReactContextBaseJ
     @ReactMethod
     fun startTor(socksPort: Int, controlPort: Int) {
 
-        val service = Intent(context, WaggleService::class.java)
+        val service = Intent(context, TorService::class.java)
             service.action = SERVICE_ACTION_EXECUTE
             service.putExtra("socksPort", socksPort)
             service.putExtra("controlPort", controlPort)
@@ -37,12 +37,12 @@ class TorModule(private val context: ReactApplicationContext): ReactContextBaseJ
 
         val serviceConnection = object: ServiceConnection {
             override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
-                waggleService = (binder as WaggleService.LocalBinder).getService()
-                waggleService?.bindClient(this@TorModule)
+                torService = (binder as TorService.LocalBinder).getService()
+                torService?.bindClient(this@TorModule)
             }
 
             override fun onServiceDisconnected(p0: ComponentName?) {
-                waggleService?.unbindClient()
+                torService?.unbindClient()
             }
         }
 
@@ -51,7 +51,7 @@ class TorModule(private val context: ReactApplicationContext): ReactContextBaseJ
 
     @ReactMethod
     fun startHiddenService(port: Int, key: String) {
-        waggleService?.addHiddenService(port, key)
+        torService?.addHiddenService(port, key)
     }
 
     @ReactMethod
