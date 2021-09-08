@@ -12,7 +12,7 @@ export function* startConnectionSaga(): Generator {
   // @ts-ignore
   yield* fork(socket.useIO, _socket);
   //
-  yield* call(replaceScreen, ScreenNames.MainScreen);
+  yield* call(replaceScreen, ScreenNames.JoinCommunityScreen);
 }
 
 export const connect = async (): Promise<Socket> => {

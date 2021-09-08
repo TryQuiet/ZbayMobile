@@ -21,7 +21,7 @@
     "@react-navigation/stack": "^5.14.5",
     "@reduxjs/toolkit": "^1.5.1",
     "@zbayapp/identity": "^3.1.0",
-    "@zbayapp/nectar": "^1.1.0",
+    "@zbayapp/nectar": "^1.4.0",
     "buffer": "^6.0.3",
     "events": "^1.1.1",
     "i18next": "^20.2.2",
