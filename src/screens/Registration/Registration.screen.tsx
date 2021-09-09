@@ -22,7 +22,6 @@ export const RegistrationScreen: FC = () => {
   useEffect(() => {
     if (
       currentIdentity !== undefined &&
-      // @ts-ignore
       currentIdentity.userCertificate !== null
     ) {
       replaceScreen(ScreenNames.SuccessScreen, {
