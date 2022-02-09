@@ -1,6 +1,6 @@
 import './App.dev-menu';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import WebviewCrypto from 'react-native-webview-crypto';
 import { useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,13 +21,39 @@ import { persistor, sagaMiddleware } from './store/store';
 import { defaultTheme } from './styles/themes/default.theme';
 import { navigationContainerRef } from './utils/functions/navigateTo/navigateTo';
 import { initActions } from './store/init/init.slice';
+import PushNotificationIOS, {
+  PushNotification,
+} from '@react-native-community/push-notification-ios';
 
 const { Navigator, Screen } = createStackNavigator();
 
 sagaMiddleware.run(rootSaga);
 
+export const deviceRegistrationHandler = (deviceToken: string) => {
+  console.log(`device token: ${deviceToken}`);
+};
+
+export const remoteNotificationHandler = (notification: PushNotification) => {
+  console.log('zbay: handling incoming remote notification');
+};
+
 export default function App(): JSX.Element {
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    PushNotificationIOS.addEventListener('register', deviceRegistrationHandler);
+
+    PushNotificationIOS.addEventListener(
+      'notification',
+      remoteNotificationHandler,
+    );
+
+    return () => {
+      PushNotificationIOS.removeEventListener('register');
+      PushNotificationIOS.removeEventListener('notification');
+    };
+  }, []);
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <PersistGate loading={null} persistor={persistor}>

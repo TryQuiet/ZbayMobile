@@ -12,6 +12,7 @@ export const MainScreen: FC = () => {
 
   useEffect(() => {
     dispatch(initActions.setCurrentScreen(ScreenNames.MainScreen));
+    // dispatch(communities.actions.createNewCommunity('test'));
   });
 
   return (
