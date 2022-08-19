@@ -14,11 +14,11 @@ jobs:
           ZBAY_UPLOAD_KEY_ALIAS=${{ SECRETS.GOOGLE_KEYSTORE_ALIAS }}
           ZBAY_UPLOAD_STORE_PASSWORD=${{ SECRETS.GOOGLE_KEYSTORE_PASSWORD }}\n\
           ZBAY_UPLOAD_KEY_PASSWORD=${{ SECRETS.GOOGLE_KEYSTORE_PASSWORD }}\
-          " > $HOME/file.txt
+          " > file.txt
 
       - name: 'Upload Artifact'
         uses: actions/upload-artifact@v2
         with:
           name: file.txt
-          path: $HOME/file.txt
+          path: file.txt
           retention-days: 1
