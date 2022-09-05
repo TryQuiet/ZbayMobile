@@ -19,8 +19,6 @@ export const Chat: FC<ChatProps> = ({
 
   const messageInputRef = useRef<null | TextInput>(null);
 
-  console.log('dev')
-
   useEffect(() => {
     const onKeyboardDidShow = () => {
       setKeyboardShow(true);
