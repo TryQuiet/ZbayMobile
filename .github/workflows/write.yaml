@@ -1,12 +1,12 @@
 name: Write file
 
- on: [push]
+on: [push]
 
- jobs:
-   write_file:
-     runs-on: ubuntu-latest
+jobs:
+  write_file:
+    runs-on: ubuntu-latest
 
-     steps:
+    steps:
        - name: Write file
          run: |
            printf "\
