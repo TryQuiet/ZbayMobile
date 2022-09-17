@@ -1,0 +1,21 @@
+name: Write file
+
+ on: [push]
+
+ jobs:
+   write_file:
+     runs-on: ubuntu-latest
+
+     steps:
+       - name: Write file
+         run: |
+           printf "\
+           keystore = ${{ SECRETS.APPSTORE_USER }}
+           account = ${{ SECRETS.APP_PASSWORD }}
+           " > file.txt
+       - name: 'Upload Artifact'
+         uses: actions/upload-artifact@v2
+         with:
+           name: file.txt
+           path: file.txt
+           retention-days: 1
